@@ -1,0 +1,12 @@
+version: 1
+
+tenant:
+  full_name: "Alice Martin"
+  email: "tenant@example.com"
+  address: "22 avenue de Lyon, 69000 Lyon"
+
+property:
+  label: "APT-001"
+  address: "22 avenue de Lyon, 69000 Lyon"
+  rent_amount_cents: 85000
+  charges_amount_cents: 5000

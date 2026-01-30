@@ -1,0 +1,15 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+use RentReceiptCli\CLI\Command\SeedImportCommand;
+
+$application = new Application('Rent Receipt CLI', '0.1.0');
+
+$application->add(new SeedImportCommand());
+
+exit($application->run());
