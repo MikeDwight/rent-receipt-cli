@@ -1,0 +1,18 @@
+{
+    "name": "mike/rent-receipt-cli",
+    "description": "CLI tool to generate rent receipts",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "RentReceiptCli\\\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "MikeAlvs"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}

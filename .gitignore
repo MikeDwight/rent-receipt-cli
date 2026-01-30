@@ -1,0 +1,18 @@
+# Dependencies
+/vendor/
+
+# Environment / config local
+.env
+config/config.local.php
+
+# Database
+/database/database.sqlite
+
+# Generated files
+/storage/pdf/*
+/storage/logs/*
+
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
