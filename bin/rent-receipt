@@ -5,37 +5,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-const APP_NAME = 'rent-receipt';
-const APP_VERSION = '0.1.0';
+use RentReceiptCli\Application\Cli\ConsoleKernel;
 
-$args = $argv;
-array_shift($args); // remove script name
-
-$command = $args[0] ?? 'help';
-
-switch ($command) {
-    case 'help':
-    case '--help':
-    case '-h':
-        echo APP_NAME . " v" . APP_VERSION . PHP_EOL;
-        echo PHP_EOL;
-        echo "Usage:" . PHP_EOL;
-        echo "  " . APP_NAME . " <command> [options]" . PHP_EOL;
-        echo PHP_EOL;
-        echo "Commands:" . PHP_EOL;
-        echo "  help        Show this help" . PHP_EOL;
-        echo "  version     Show version" . PHP_EOL;
-        echo PHP_EOL;
-        exit(0);
-
-    case 'version':
-    case '--version':
-    case '-V':
-        echo APP_VERSION . PHP_EOL;
-        exit(0);
-
-    default:
-        fwrite(STDERR, "Unknown command: {$command}" . PHP_EOL);
-        fwrite(STDERR, "Run: " . APP_NAME . " help" . PHP_EOL);
-        exit(1);
-}
+$application = ConsoleKernel::build();
+exit($application->run());
