@@ -20,6 +20,7 @@ use RentReceiptCli\Infrastructure\Pdf\WkhtmltopdfPdfGenerator;
 use RentReceiptCli\Infrastructure\Template\SimpleTemplateRenderer;
 
 
+
 final class ReceiptGenerateCommand extends Command
 {
     protected static $defaultName = 'receipt:generate';
@@ -53,12 +54,25 @@ final class ReceiptGenerateCommand extends Command
             $receiptsRepo = new DryRunReceiptRepository($receiptsRepo);
         }
 
-        // Use case
+        // Config
+        $config = require __DIR__ . '/../../../config/config.php';
+        $landlordName = (string) ($config['landlord']['name'] ?? 'Bailleur');
+        $landlordAddress = (string) ($config['landlord']['address'] ?? '');
+
+        // Use case wiring (composition root)
         $renderer = new SimpleTemplateRenderer();
         $htmlBuilder = new ReceiptHtmlBuilder($renderer, __DIR__ . '/../../../templates/receipt.html');
         $pdf = new WkhtmltopdfPdfGenerator('wkhtmltopdf');
 
-        $uc = new GenerateReceiptsForMonth($paymentsRepo, $receiptsRepo, $htmlBuilder, $pdf);
+        $uc = new GenerateReceiptsForMonth(
+            $paymentsRepo,
+            $receiptsRepo,
+            $htmlBuilder,
+            $pdf,
+            $landlordName,
+            $landlordAddress
+        );
+
 
 
         $result = $uc->execute($month);

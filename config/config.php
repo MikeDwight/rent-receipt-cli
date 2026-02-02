@@ -11,4 +11,8 @@ return [
         'storage_pdf' => dirname(__DIR__) . '/storage/pdf',
         'storage_logs' => dirname(__DIR__) . '/storage/logs',
     ],
+    'landlord' => [
+        'name' => 'Mike Dwight',
+        'address' => '10 rue Exemple, 75000 Paris',
+    ],
 ];
