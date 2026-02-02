@@ -15,6 +15,10 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use RentReceiptCli\Core\Service\ReceiptHtmlBuilder;
+use RentReceiptCli\Infrastructure\Pdf\WkhtmltopdfPdfGenerator;
+use RentReceiptCli\Infrastructure\Template\SimpleTemplateRenderer;
+
 
 final class ReceiptGenerateCommand extends Command
 {
@@ -50,7 +54,12 @@ final class ReceiptGenerateCommand extends Command
         }
 
         // Use case
-        $uc = new GenerateReceiptsForMonth($paymentsRepo, $receiptsRepo);
+        $renderer = new SimpleTemplateRenderer();
+        $htmlBuilder = new ReceiptHtmlBuilder($renderer, __DIR__ . '/../../../templates/receipt.html');
+        $pdf = new WkhtmltopdfPdfGenerator('wkhtmltopdf');
+
+        $uc = new GenerateReceiptsForMonth($paymentsRepo, $receiptsRepo, $htmlBuilder, $pdf);
+
 
         $result = $uc->execute($month);
 

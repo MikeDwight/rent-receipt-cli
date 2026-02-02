@@ -8,12 +8,19 @@ use RentReceiptCli\Application\DTO\GenerateReceiptsResult;
 use RentReceiptCli\Application\Port\ReceiptRepository;
 use RentReceiptCli\Application\Port\RentPaymentRepository;
 use RentReceiptCli\Core\Domain\ValueObject\Month;
+use RentReceiptCli\Core\Service\PdfGenerator;
+use RentReceiptCli\Core\Service\ReceiptHtmlBuilder;
+
+
+
 
 final class GenerateReceiptsForMonth
 {
     public function __construct(
-        private readonly RentPaymentRepository $payments,
-        private readonly ReceiptRepository $receipts,
+    private readonly RentPaymentRepository $payments,
+    private readonly ReceiptRepository $receipts,
+    private readonly ReceiptHtmlBuilder $htmlBuilder,
+    private readonly PdfGenerator $pdf,
     ) {}
 
     public function execute(string $month): GenerateReceiptsResult
@@ -51,6 +58,30 @@ final class GenerateReceiptsForMonth
             // V1: deterministic PDF path (actual PDF generation comes later in Thread 8)
             $pdfPath = sprintf('var/receipts/receipt-%s-tenant-%d.pdf', $m->toString(), $tenantId);
 
+            // Build template variables (minimal V1 mapping)
+            $vars = [
+                'receipt_number' => sprintf('QL-%s-%06d', $m->toString(), $rentPaymentId),
+                'period_machine' => $m->toString(),
+                'period_label' => $m->toString(), // we'll improve to "février 2026" later
+                'issued_at' => date('d/m/Y'),
+                'paid_at' => (string) ($row['paid_at'] ?? ''),
+                'landlord_name' => (string) ($row['landlord_name'] ?? 'Bailleur'),
+                'landlord_address' => (string) ($row['landlord_address'] ?? ''),
+                'tenant_name' => (string) ($row['tenant_name'] ?? ('Tenant #' . $tenantId)),
+                'tenant_address' => (string) ($row['tenant_address'] ?? ''),
+                'property_label' => (string) ($row['property_label'] ?? ''),
+                'property_address' => (string) ($row['property_address'] ?? ''),
+                'rent_amount_eur' => $this->formatCentsToEur((int) ($row['rent_amount'] ?? 0)),
+                'charges_amount_eur' => $this->formatCentsToEur((int) ($row['charges_amount'] ?? 0)),
+                'total_amount_eur' => $this->formatCentsToEur(
+                    (int) ($row['rent_amount'] ?? 0) + (int) ($row['charges_amount'] ?? 0)
+                ),
+            ];
+
+            $html = $this->htmlBuilder->build($vars);
+            $this->pdf->generateFromHtml($html, $pdfPath);
+
+
             $receiptId = $this->receipts->create([
                 'rent_payment_id' => $rentPaymentId,
                 'pdf_path' => $pdfPath,
@@ -67,4 +98,11 @@ final class GenerateReceiptsForMonth
 
         return $result;
     }
+    private function formatCentsToEur(int $cents): string
+        {
+            $eur = $cents / 100;
+            // French-style formatting: 1 000,00 €
+            return number_format($eur, 2, ',', ' ') . ' €';
+        }
+
 }
