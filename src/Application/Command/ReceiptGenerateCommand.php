@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace RentReceiptCli\Application\Command;
 
+use RentReceiptCli\Application\UseCase\GenerateReceiptsForMonth;
+use RentReceiptCli\Application\Cli\ConsoleInputValidator;
+use RentReceiptCli\Infrastructure\Database\DryRunReceiptRepository;
+use RentReceiptCli\Infrastructure\Database\PdoConnectionFactory;
+use RentReceiptCli\Infrastructure\Database\SqliteReceiptRepository;
+use RentReceiptCli\Infrastructure\Database\SqliteRentPaymentRepository;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use RentReceiptCli\Application\Cli\ConsoleInputValidator;
-
 
 final class ReceiptGenerateCommand extends Command
 {
@@ -34,11 +38,47 @@ final class ReceiptGenerateCommand extends Command
             return Command::INVALID;
         }
 
+        // DB connection
+        $pdo = (new PdoConnectionFactory(__DIR__ . '/../../../database.sqlite'))->create();
+
+        // Repositories
+        $paymentsRepo = new SqliteRentPaymentRepository($pdo);
+        $receiptsRepo = new SqliteReceiptRepository($pdo);
 
         if ($dryRun) {
-            $output->writeln("Dry-run: would generate receipts for <info>{$month}</info> (stub)");
+            $receiptsRepo = new DryRunReceiptRepository($receiptsRepo);
+        }
+
+        // Use case
+        $uc = new GenerateReceiptsForMonth($paymentsRepo, $receiptsRepo);
+
+        $result = $uc->execute($month);
+
+        if ($dryRun) {
+            $output->writeln("Dry-run: computed receipts for <info>{$month}</info> (no DB write)");
         } else {
-            $output->writeln("Generating receipts for <info>{$month}</info> (stub)");
+            $output->writeln("Generated receipts for <info>{$month}</info>");
+        }
+
+        $output->writeln(sprintf('Created: <info>%d</info>', count($result->created)));
+        $output->writeln(sprintf('Skipped: <comment>%d</comment>', count($result->skipped)));
+
+        // Optional: show details (useful for debugging)
+        foreach ($result->created as $row) {
+            $output->writeln(sprintf(
+                ' + created receipt for tenant #%d (payment #%d) -> %s',
+                (int) $row['tenant_id'],
+                (int) $row['rent_payment_id'],
+                (string) $row['pdf_path']
+            ));
+        }
+
+        foreach ($result->skipped as $row) {
+            $output->writeln(sprintf(
+                ' - skipped tenant #%d (%s)',
+                (int) $row['tenant_id'],
+                (string) $row['reason']
+            ));
         }
 
         return Command::SUCCESS;

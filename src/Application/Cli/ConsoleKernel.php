@@ -8,6 +8,8 @@ use Symfony\Component\Console\Application;
 use RentReceiptCli\Application\Command\ReceiptListCommand;
 use RentReceiptCli\Application\Command\ReceiptGenerateCommand;
 use RentReceiptCli\Application\Command\ReceiptSendCommand;
+use RentReceiptCli\CLI\Command\SeedImportCommand;
+
 
 
 
@@ -20,6 +22,8 @@ final class ConsoleKernel
         $app->add(new ReceiptListCommand());
         $app->add(new ReceiptGenerateCommand());
         $app->add(new ReceiptSendCommand());
+        $app->add(new SeedImportCommand());
+
 
 
 
