@@ -21,6 +21,8 @@ final class GenerateReceiptsForMonth
     private readonly ReceiptRepository $receipts,
     private readonly ReceiptHtmlBuilder $htmlBuilder,
     private readonly PdfGenerator $pdf,
+    private readonly string $landlordName,
+    private readonly string $landlordAddress,
     ) {}
 
     public function execute(string $month): GenerateReceiptsResult
@@ -59,23 +61,23 @@ final class GenerateReceiptsForMonth
             $pdfPath = sprintf('var/receipts/receipt-%s-tenant-%d.pdf', $m->toString(), $tenantId);
 
             // Build template variables (minimal V1 mapping)
+            $rentCents = (int) ($row['rent_amount'] ?? 0);
+            $chargesCents = (int) ($row['charges_amount'] ?? 0);
             $vars = [
                 'receipt_number' => sprintf('QL-%s-%06d', $m->toString(), $rentPaymentId),
                 'period_machine' => $m->toString(),
                 'period_label' => $m->toString(), // we'll improve to "février 2026" later
                 'issued_at' => date('d/m/Y'),
-                'paid_at' => (string) ($row['paid_at'] ?? ''),
-                'landlord_name' => (string) ($row['landlord_name'] ?? 'Bailleur'),
-                'landlord_address' => (string) ($row['landlord_address'] ?? ''),
+                'paid_at' => (string)($row['paid_at'] ?? ''),
+                'landlord_name' => $this->landlordName,
+                'landlord_address' => $this->landlordAddress,
                 'tenant_name' => (string) ($row['tenant_name'] ?? ('Tenant #' . $tenantId)),
                 'tenant_address' => (string) ($row['tenant_address'] ?? ''),
-                'property_label' => (string) ($row['property_label'] ?? ''),
+                'property_label' => (string)($row['property_label'] ?? ''),
                 'property_address' => (string) ($row['property_address'] ?? ''),
-                'rent_amount_eur' => $this->formatCentsToEur((int) ($row['rent_amount'] ?? 0)),
-                'charges_amount_eur' => $this->formatCentsToEur((int) ($row['charges_amount'] ?? 0)),
-                'total_amount_eur' => $this->formatCentsToEur(
-                    (int) ($row['rent_amount'] ?? 0) + (int) ($row['charges_amount'] ?? 0)
-                ),
+                'rent_amount_eur' => $this->formatCentsToEur($rentCents),
+                'charges_amount_eur' => $this->formatCentsToEur($chargesCents),
+                'total_amount_eur' => $this->formatCentsToEur($rentCents + $chargesCents),
             ];
 
             $html = $this->htmlBuilder->build($vars);
