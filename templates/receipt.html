@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Quittance de loyer - {{period_machine}} - {{tenant_name}}</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 14mm;
+      }
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 12px;
+        color: #111;
+      }
+      .muted {
+        color: #666;
+      }
+      .header {
+        border-bottom: 2px solid #111;
+        padding-bottom: 10px;
+        margin-bottom: 14px;
+      }
+      .title {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0;
+      }
+      .subtitle {
+        margin: 4px 0 0 0;
+      }
+      .row {
+        width: 100%;
+      }
+      .col {
+        display: inline-block;
+        vertical-align: top;
+      }
+      .col-50 {
+        width: 49%;
+      }
+      .box {
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 4px;
+      }
+      .section {
+        margin: 12px 0;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+      }
+      th {
+        background: #f5f5f5;
+        text-align: left;
+      }
+      .right {
+        text-align: right;
+      }
+      .total {
+        font-weight: 700;
+      }
+      .footer {
+        margin-top: 18px;
+        padding-top: 10px;
+        border-top: 1px solid #ddd;
+        font-size: 11px;
+      }
+      .signature {
+        margin-top: 26px;
+      }
+      .signature-line {
+        margin-top: 40px;
+        border-top: 1px solid #111;
+        width: 240px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="header">
+      <p class="muted" style="margin: 0">Référence : {{receipt_number}}</p>
+      <h1 class="title">QUITTANCE DE LOYER</h1>
+      <p class="subtitle">Période : <strong>{{period_label}}</strong></p>
+      <p class="muted" style="margin: 6px 0 0 0">Émise le {{issued_at}}</p>
+    </div>
+
+    <div class="row section">
+      <div class="col col-50">
+        <div class="box">
+          <strong>Bailleur</strong><br />
+          {{landlord_name}}<br />
+          <span class="muted">{{landlord_address}}</span>
+        </div>
+      </div>
+      <div class="col col-50" style="text-align: right">
+        <div class="box" style="text-align: left">
+          <strong>Locataire</strong><br />
+          {{tenant_name}}<br />
+          <span class="muted">{{tenant_address}}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section box">
+      <strong>Logement loué</strong><br />
+      {{property_label}}<br />
+      <span class="muted">{{property_address}}</span>
+    </div>
+
+    <div class="section">
+      <p style="margin: 0 0 8px 0">
+        Je soussigné(e) <strong>{{landlord_name}}</strong>, reconnais avoir reçu
+        de <strong>{{tenant_name}}</strong> la somme de
+        <strong>{{total_amount_eur}}</strong> au titre du loyer et des charges
+        pour la période indiquée ci-dessus.
+      </p>
+      <p class="muted" style="margin: 0">Date de paiement : {{paid_at}}</p>
+    </div>
+
+    <div class="section">
+      <table>
+        <thead>
+          <tr>
+            <th>Détail</th>
+            <th class="right">Montant</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Loyer (hors charges)</td>
+            <td class="right">{{rent_amount_eur}}</td>
+          </tr>
+          <tr>
+            <td>Charges</td>
+            <td class="right">{{charges_amount_eur}}</td>
+          </tr>
+          <tr class="total">
+            <td>Total payé</td>
+            <td class="right">{{total_amount_eur}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="signature">
+      <div>Fait pour servir et valoir ce que de droit.</div>
+      <div class="muted">Signature du bailleur</div>
+      <div class="signature-line"></div>
+    </div>
+
+    <div class="footer">
+      <div class="muted">
+        Rappel : la quittance détaille les sommes versées en distinguant le
+        loyer et les charges.
+      </div>
+    </div>
+  </body>
+</html>
