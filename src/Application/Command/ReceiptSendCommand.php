@@ -37,13 +37,29 @@ final class ReceiptSendCommand extends Command
         }
 
 
-        $mode = $dryRun ? 'Dry-run: would send' : 'Sending';
-        $output->writeln("{$mode} receipts for <info>{$month}</info> (stub)");
+        $config = require dirname(__DIR__, 3) . '/config/config.php';
+$pdo = (new \RentReceiptCli\Infrastructure\Database\PdoConnectionFactory($config['paths']['database']))->create();
 
-        if ($force) {
-            $output->writeln('<comment>--force enabled (future behavior): would allow re-sending already sent receipts.</comment>');
-        }
+$receiptsRepo = new \RentReceiptCli\Infrastructure\Database\SqliteReceiptRepository($pdo);
 
-        return Command::SUCCESS;
+// TEMP adapters
+$sender = new \RentReceiptCli\Infrastructure\Mail\NullReceiptSender();
+$archiver = new \RentReceiptCli\Infrastructure\Storage\NullReceiptArchiver();
+
+$uc = new \RentReceiptCli\Application\UseCase\SendReceiptsForMonth($receiptsRepo, $sender, $archiver);
+
+$monthVo = \RentReceiptCli\Core\Domain\ValueObject\Month::fromString($month);
+$res = $uc->execute($monthVo, $dryRun);
+
+$output->writeln(sprintf('Processed pending: %d', $res['sent'] + $res['skipped']));
+$output->writeln(sprintf('Sent: %d', $res['sent']));
+$output->writeln(sprintf('Dry-run skipped: %d', $res['skipped']));
+
+if ($force) {
+    $output->writeln('<comment>--force is not implemented yet.</comment>');
+}
+
+return Command::SUCCESS;
+
     }
 }

@@ -9,6 +9,8 @@ use RentReceiptCli\Application\Command\ReceiptListCommand;
 use RentReceiptCli\Application\Command\ReceiptGenerateCommand;
 use RentReceiptCli\Application\Command\ReceiptSendCommand;
 use RentReceiptCli\CLI\Command\SeedImportCommand;
+use RentReceiptCli\Application\Command\ReceiptSendStatusCommand;
+
 
 
 
@@ -23,6 +25,8 @@ final class ConsoleKernel
         $app->add(new ReceiptGenerateCommand());
         $app->add(new ReceiptSendCommand());
         $app->add(new SeedImportCommand());
+        $app->add(new ReceiptSendStatusCommand());
+
 
 
 

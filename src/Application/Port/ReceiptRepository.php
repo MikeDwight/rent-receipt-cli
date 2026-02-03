@@ -16,5 +16,12 @@ interface ReceiptRepository
      * @param array<string,mixed> $data
      */
     public function create(array $data): int;
+
+    public function findPendingByMonth(\RentReceiptCli\Core\Domain\ValueObject\Month $month): array;
+
+    public function markSent(int $receiptId, ?string $errorMessage): void;
+
+    public function markArchived(int $receiptId, ?string $archivedPath, ?string $errorMessage): void;
+
 }
 
