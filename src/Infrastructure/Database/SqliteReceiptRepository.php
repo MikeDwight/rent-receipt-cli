@@ -108,6 +108,7 @@ JOIN rent_payments rp ON rp.id = r.rent_payment_id
 JOIN tenants t ON t.id = rp.tenant_id
 WHERE rp.period = :period
   AND r.sent_at IS NULL
+AND (r.send_error IS NULL OR r.send_error != '')
 
 ORDER BY r.id ASC
 SQL;

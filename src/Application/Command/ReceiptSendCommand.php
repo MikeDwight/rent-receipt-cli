@@ -43,17 +43,28 @@ $pdo = (new \RentReceiptCli\Infrastructure\Database\PdoConnectionFactory($config
 $receiptsRepo = new \RentReceiptCli\Infrastructure\Database\SqliteReceiptRepository($pdo);
 
 // TEMP adapters
-$sender = new \RentReceiptCli\Infrastructure\Mail\NullReceiptSender();
-$archiver = new \RentReceiptCli\Infrastructure\Storage\NullReceiptArchiver();
+$sender = new \RentReceiptCli\Infrastructure\Mail\SmtpReceiptSender($config['smtp']);
+$local = new \RentReceiptCli\Infrastructure\Storage\LocalReceiptArchiver($config['paths']['storage_pdf']);
+$ncCfg = $config['nextcloud'] ?? [];
+$nextcloud = new \RentReceiptCli\Infrastructure\Storage\NextcloudWebdavArchiver(
+    (string)($ncCfg['base_url'] ?? ''),
+    (string)($ncCfg['username'] ?? ''),
+    (string)($ncCfg['password'] ?? ''),
+    (string)($ncCfg['base_path'] ?? '/Remote.php/dav/files'),
+);
+$archiver = new \RentReceiptCli\Infrastructure\Storage\FallbackArchiver($nextcloud, $local);
+
 
 $uc = new \RentReceiptCli\Application\UseCase\SendReceiptsForMonth($receiptsRepo, $sender, $archiver);
 
 $monthVo = \RentReceiptCli\Core\Domain\ValueObject\Month::fromString($month);
 $res = $uc->execute($monthVo, $dryRun);
 
-$output->writeln(sprintf('Processed pending: %d', $res['sent'] + $res['skipped']));
+$output->writeln(sprintf('Processed pending: %d', $res['processed']));
 $output->writeln(sprintf('Sent: %d', $res['sent']));
+$output->writeln(sprintf('Failed: %d', $res['failed']));
 $output->writeln(sprintf('Dry-run skipped: %d', $res['skipped']));
+
 
 if ($force) {
     $output->writeln('<comment>--force is not implemented yet.</comment>');

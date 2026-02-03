@@ -30,4 +30,19 @@ return [
         'enable_local_file_access' => true,
     ],
     ],
+    'smtp' => [
+    'host' => getenv('SMTP_HOST') ?: 'smtp.example.com',
+    'port' => (int) (getenv('SMTP_PORT') ?: 587),
+    'username' => getenv('SMTP_USERNAME') ?: '',
+    'password' => getenv('SMTP_PASSWORD') ?: '',
+    'encryption' => getenv('SMTP_ENCRYPTION') ?: 'tls', // 'tls' | 'ssl' | '' (none)
+    'from_email' => getenv('SMTP_FROM_EMAIL') ?: 'no-reply@example.com',
+    'from_name' => getenv('SMTP_FROM_NAME') ?: ($landlordName ?? 'Bailleur'),
+    ],
+    'nextcloud' => [
+    'base_url' => getenv('NEXTCLOUD_BASE_URL') ?: '',
+    'username' => getenv('NEXTCLOUD_USERNAME') ?: '',
+    'password' => getenv('NEXTCLOUD_PASSWORD') ?: '',
+    'base_path' => getenv('NEXTCLOUD_BASE_PATH') ?: '/Remote.php/dav/files',
+    ],
 ];
