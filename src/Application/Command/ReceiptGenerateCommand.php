@@ -18,6 +18,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use RentReceiptCli\Core\Service\ReceiptHtmlBuilder;
 use RentReceiptCli\Infrastructure\Pdf\WkhtmltopdfPdfGenerator;
 use RentReceiptCli\Infrastructure\Template\SimpleTemplateRenderer;
+use RentReceiptCli\Core\Service\Pdf\PdfOptions;
+
 
 
 
@@ -62,16 +64,38 @@ final class ReceiptGenerateCommand extends Command
         // Use case wiring (composition root)
         $renderer = new SimpleTemplateRenderer();
         $htmlBuilder = new ReceiptHtmlBuilder($renderer, __DIR__ . '/../../../templates/receipt.html');
-        $pdf = new WkhtmltopdfPdfGenerator('wkhtmltopdf');
+        $pdfConfig = $config['pdf'] ?? [];
+
+        $pdf = new WkhtmltopdfPdfGenerator(
+            wkhtmltopdfBinary: (string)($pdfConfig['wkhtmltopdf_binary'] ?? 'wkhtmltopdf'),
+            keepTempHtmlOnFailure: (bool)($pdfConfig['keep_temp_html_on_failure'] ?? true),
+            tmpDir: $pdfConfig['tmp_dir'] ?? null,
+        );
+
+        $pdfDefaults = $pdfConfig['defaults'] ?? [];
+
+        $pdfOptions = new PdfOptions(
+            pageSize: (string)($pdfDefaults['page_size'] ?? 'A4'),
+            orientation: (string)($pdfDefaults['orientation'] ?? 'Portrait'),
+            marginTopMm: (int)($pdfDefaults['margin_top_mm'] ?? 10),
+            marginRightMm: (int)($pdfDefaults['margin_right_mm'] ?? 10),
+            marginBottomMm: (int)($pdfDefaults['margin_bottom_mm'] ?? 10),
+            marginLeftMm: (int)($pdfDefaults['margin_left_mm'] ?? 10),
+            enableLocalFileAccess: (bool)($pdfDefaults['enable_local_file_access'] ?? true),
+        );
+
+
 
         $uc = new GenerateReceiptsForMonth(
             $paymentsRepo,
             $receiptsRepo,
             $htmlBuilder,
             $pdf,
+            $pdfOptions,
             $landlordName,
             $landlordAddress
         );
+
 
 
 

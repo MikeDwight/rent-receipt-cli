@@ -15,4 +15,19 @@ return [
         'name' => 'Mike Dwight',
         'address' => '10 rue Exemple, 75000 Paris',
     ],
+    'pdf' => [
+    'wkhtmltopdf_binary' => getenv('WKHTMLTOPDF_BIN') ?: 'wkhtmltopdf',
+    'keep_temp_html_on_failure' => (getenv('PDF_KEEP_TEMP_HTML') ?: '1') === '1',
+    'tmp_dir' => getenv('PDF_TMP_DIR') ?: null,
+
+    'defaults' => [
+        'page_size' => 'A4',
+        'orientation' => 'Portrait',
+        'margin_top_mm' => 10,
+        'margin_right_mm' => 10,
+        'margin_bottom_mm' => 10,
+        'margin_left_mm' => 10,
+        'enable_local_file_access' => true,
+    ],
+    ],
 ];

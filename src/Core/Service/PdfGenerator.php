@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace RentReceiptCli\Core\Service;
 
+use RentReceiptCli\Core\Service\Pdf\PdfOptions;
+
 interface PdfGenerator
 {
     /**
@@ -11,5 +13,9 @@ interface PdfGenerator
      *
      * @throws \RuntimeException on failure
      */
-    public function generateFromHtml(string $html, string $outputPdfPath): void;
+    public function generateFromHtml(
+        string $html,
+        string $outputPdfPath,
+        ?PdfOptions $options = null
+    ): void;
 }

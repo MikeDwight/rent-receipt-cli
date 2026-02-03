@@ -10,6 +10,8 @@ use RentReceiptCli\Application\Port\RentPaymentRepository;
 use RentReceiptCli\Core\Domain\ValueObject\Month;
 use RentReceiptCli\Core\Service\PdfGenerator;
 use RentReceiptCli\Core\Service\ReceiptHtmlBuilder;
+use RentReceiptCli\Core\Service\Pdf\PdfOptions;
+
 
 
 
@@ -17,13 +19,15 @@ use RentReceiptCli\Core\Service\ReceiptHtmlBuilder;
 final class GenerateReceiptsForMonth
 {
     public function __construct(
-    private readonly RentPaymentRepository $payments,
-    private readonly ReceiptRepository $receipts,
-    private readonly ReceiptHtmlBuilder $htmlBuilder,
-    private readonly PdfGenerator $pdf,
-    private readonly string $landlordName,
-    private readonly string $landlordAddress,
+        private readonly RentPaymentRepository $payments,
+        private readonly ReceiptRepository $receipts,
+        private readonly ReceiptHtmlBuilder $htmlBuilder,
+        private readonly PdfGenerator $pdf,
+        private readonly PdfOptions $pdfOptions,
+        private readonly string $landlordName,
+        private readonly string $landlordAddress,
     ) {}
+
 
     public function execute(string $month): GenerateReceiptsResult
     {
@@ -81,7 +85,7 @@ final class GenerateReceiptsForMonth
             ];
 
             $html = $this->htmlBuilder->build($vars);
-            $this->pdf->generateFromHtml($html, $pdfPath);
+            $this->pdf->generateFromHtml($html, $pdfPath, $this->pdfOptions);
 
 
             $receiptId = $this->receipts->create([
