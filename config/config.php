@@ -6,7 +6,7 @@ return [
     // Absolute paths are safer in CLI contexts
     'paths' => [
         'root' => dirname(__DIR__),
-        'database' => dirname(__DIR__) . '/database/database.sqlite',
+        'database' => __DIR__ . '/../database.sqlite',
         'templates' => dirname(__DIR__) . '/templates',
         'storage_pdf' => dirname(__DIR__) . '/storage/pdf',
         'storage_logs' => dirname(__DIR__) . '/storage/logs',
@@ -31,6 +31,7 @@ return [
     ],
     ],
     'smtp' => [
+    'enabled' => false,
     'host' => getenv('SMTP_HOST') ?: 'smtp.example.com',
     'port' => (int) (getenv('SMTP_PORT') ?: 587),
     'username' => getenv('SMTP_USERNAME') ?: '',
@@ -44,5 +45,9 @@ return [
     'username' => getenv('NEXTCLOUD_USERNAME') ?: '',
     'password' => getenv('NEXTCLOUD_PASSWORD') ?: '',
     'base_path' => getenv('NEXTCLOUD_BASE_PATH') ?: '/Remote.php/dav/files',
+    ],
+    'logging' => [
+    'path' => __DIR__ . '/../var/logs',
+    'level' => 'info',
     ],
 ];

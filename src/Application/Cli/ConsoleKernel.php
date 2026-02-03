@@ -10,6 +10,8 @@ use RentReceiptCli\Application\Command\ReceiptGenerateCommand;
 use RentReceiptCli\Application\Command\ReceiptSendCommand;
 use RentReceiptCli\CLI\Command\SeedImportCommand;
 use RentReceiptCli\Application\Command\ReceiptSendStatusCommand;
+use RentReceiptCli\Application\Port\Logger;
+
 
 
 
@@ -18,12 +20,12 @@ use RentReceiptCli\Application\Command\ReceiptSendStatusCommand;
 
 final class ConsoleKernel
 {
-    public static function build(): Application
+    public static function build(Logger $logger): Application
     {
         $app = new Application('rent-receipt', '0.1.0');
         $app->add(new ReceiptListCommand());
-        $app->add(new ReceiptGenerateCommand());
-        $app->add(new ReceiptSendCommand());
+        $app->add(new ReceiptGenerateCommand($logger));
+        $app->add(new ReceiptSendCommand($logger));
         $app->add(new SeedImportCommand());
         $app->add(new ReceiptSendStatusCommand());
 

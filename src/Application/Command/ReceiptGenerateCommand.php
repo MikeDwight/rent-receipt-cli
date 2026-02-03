@@ -19,12 +19,19 @@ use RentReceiptCli\Core\Service\ReceiptHtmlBuilder;
 use RentReceiptCli\Infrastructure\Pdf\WkhtmltopdfPdfGenerator;
 use RentReceiptCli\Infrastructure\Template\SimpleTemplateRenderer;
 use RentReceiptCli\Core\Service\Pdf\PdfOptions;
+use RentReceiptCli\Application\Port\Logger;
+
 
 
 
 
 final class ReceiptGenerateCommand extends Command
 {
+    public function __construct(private readonly Logger $logger)
+    {
+        parent::__construct();
+    }
+
     protected static $defaultName = 'receipt:generate';
     protected static $defaultDescription = 'Generate rent receipts PDFs for a given month';
 
@@ -40,13 +47,15 @@ final class ReceiptGenerateCommand extends Command
         $month = (string) $input->getArgument('month');
         $dryRun = (bool) $input->getOption('dry-run');
 
+        
         if (!ConsoleInputValidator::isValidMonth($month)) {
             $output->writeln('<error>Invalid month format. Expected YYYY-MM (e.g. 2026-01)</error>');
             return Command::INVALID;
-        }
+            }
 
-        // Config
         $config = require __DIR__ . '/../../../config/config.php';
+            
+        // Config
         $landlordName = (string) ($config['landlord']['name'] ?? 'Bailleur');
         $landlordAddress = (string) ($config['landlord']['address'] ?? '');
 
@@ -96,8 +105,10 @@ final class ReceiptGenerateCommand extends Command
             $pdf,
             $pdfOptions,
             $landlordName,
-            $landlordAddress
+            $landlordAddress,
+            $this->logger
         );
+
 
 
 

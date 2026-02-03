@@ -22,6 +22,10 @@ final class SmtpReceiptSender implements ReceiptSenderInterface
 
     public function send(SendReceiptRequest $request): SendReceiptResult
     {
+        if (($this->config['enabled'] ?? true) === false) {
+            return SendReceiptResult::ok();
+        }
+
         $mail = new PHPMailer(true);
 
         try {

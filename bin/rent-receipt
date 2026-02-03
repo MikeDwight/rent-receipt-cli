@@ -6,6 +6,15 @@ declare(strict_types=1);
 require __DIR__ . '/../vendor/autoload.php';
 
 use RentReceiptCli\Application\Cli\ConsoleKernel;
+use RentReceiptCli\Infrastructure\Logging\FileLogger;
 
-$application = ConsoleKernel::build();
+$config = require __DIR__ . '/../config/config.php';
+
+$logger = new FileLogger(
+    logDir: $config['logging']['path'],
+    level: $config['logging']['level'] ?? 'info'
+);
+
+$application = ConsoleKernel::build($logger);
+
 exit($application->run());
