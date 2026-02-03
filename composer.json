@@ -16,6 +16,7 @@
   "minimum-stability": "stable",
   "require": {
     "symfony/console": "^6.4",
-    "symfony/yaml": "^6.4"
+    "symfony/yaml": "^6.4",
+    "phpmailer/phpmailer": "^6.9"
   }
 }
