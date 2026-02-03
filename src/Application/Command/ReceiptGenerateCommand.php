@@ -45,8 +45,13 @@ final class ReceiptGenerateCommand extends Command
             return Command::INVALID;
         }
 
-        // DB connection
-        $pdo = (new PdoConnectionFactory(__DIR__ . '/../../../database.sqlite'))->create();
+        // Config
+        $config = require __DIR__ . '/../../../config/config.php';
+        $landlordName = (string) ($config['landlord']['name'] ?? 'Bailleur');
+        $landlordAddress = (string) ($config['landlord']['address'] ?? '');
+
+        
+        $pdo = (new PdoConnectionFactory($config['paths']['database']))->create();
 
         // Repositories
         $paymentsRepo = new SqliteRentPaymentRepository($pdo);
@@ -56,10 +61,8 @@ final class ReceiptGenerateCommand extends Command
             $receiptsRepo = new DryRunReceiptRepository($receiptsRepo);
         }
 
-        // Config
-        $config = require __DIR__ . '/../../../config/config.php';
-        $landlordName = (string) ($config['landlord']['name'] ?? 'Bailleur');
-        $landlordAddress = (string) ($config['landlord']['address'] ?? '');
+        
+
 
         // Use case wiring (composition root)
         $renderer = new SimpleTemplateRenderer();
