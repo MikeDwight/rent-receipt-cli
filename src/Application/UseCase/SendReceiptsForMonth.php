@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace RentReceiptCli\Application\UseCase;
 
+use RentReceiptCli\Application\Port\Logger;
 use RentReceiptCli\Application\Port\ReceiptRepository;
 use RentReceiptCli\Core\Domain\ValueObject\Month;
-use RentReceiptCli\Core\Service\ReceiptArchiverInterface;
-use RentReceiptCli\Core\Service\ReceiptSenderInterface;
 use RentReceiptCli\Core\Service\Dto\ArchiveReceiptRequest;
 use RentReceiptCli\Core\Service\Dto\SendReceiptRequest;
+use RentReceiptCli\Core\Service\ReceiptArchiverInterface;
+use RentReceiptCli\Core\Service\ReceiptSenderInterface;
 
 final class SendReceiptsForMonth
 {
@@ -17,15 +18,37 @@ final class SendReceiptsForMonth
         private readonly ReceiptRepository $receipts,
         private readonly ReceiptSenderInterface $sender,
         private readonly ReceiptArchiverInterface $archiver,
+        private readonly Logger $logger,
         private readonly string $nextcloudTargetDir = '',
     ) {}
 
     /**
-     * @return array{sent:int, skipped:int}
+     * @return array{processed:int, sent:int, failed:int, skipped:int}
      */
-    public function execute(Month $month, bool $dryRun): array
+    public function execute(Month $month, bool $dryRun, bool $force = false): array
+
     {
-        $pending = $this->receipts->findPendingByMonth($month);
+
+                if ($force) {
+            $this->logger->warning('receipts.send.force.requested', [
+                'month' => $month->toString(),
+                'note' => 'force mode not wired yet (missing ReceiptRepository::findByMonth)',
+            ]);
+        }
+
+
+        $pending = $force
+            ? $this->receipts->findByMonth($month)
+            : $this->receipts->findPendingByMonth($month);
+
+
+        $this->logger->info('receipts.send.uc.start', [
+            'month' => $month->toString(),
+            'dry_run' => $dryRun ? 1 : 0,
+            'pending' => count($pending),
+            'force' => $force ? 1 : 0,
+
+        ]);
 
         $processed = 0;
         $failed = 0;
@@ -34,54 +57,103 @@ final class SendReceiptsForMonth
 
         foreach ($pending as $r) {
             $processed++;
+
+            $receiptId = (int) ($r['id'] ?? 0);
+            $tenantId = (int) ($r['tenant_id'] ?? 0);
+            $tenantEmail = (string) ($r['tenant_email'] ?? '');
+            $tenantName = (string) ($r['tenant_name'] ?? '');
+            $pdfPath = (string) ($r['pdf_path'] ?? '');
+
             if ($dryRun) {
+                $this->logger->info('receipts.send.item.dry_run', [
+                    'receipt_id' => $receiptId,
+                    'tenant_id' => $tenantId,
+                    'email' => $tenantEmail,
+                    'pdf' => $pdfPath,
+                ]);
+
                 $skipped++;
                 continue;
             }
 
+            $this->logger->info('receipts.send.item', [
+                'receipt_id' => $receiptId,
+                'tenant_id' => $tenantId,
+                'email' => $tenantEmail,
+                'pdf' => $pdfPath,
+            ]);
 
-            // TEMP: sender/archiver vont être branchés au bloc suivant
             $sendRes = $this->sender->send(new SendReceiptRequest(
-                toEmail: (string)($r['tenant_email'] ?? ''),
-                toName: (string)($r['tenant_name'] ?? ''),
+                toEmail: $tenantEmail,
+                toName: $tenantName,
                 subject: "Quittance de loyer {$month->toString()}",
                 bodyText: "Bonjour,\n\nVeuillez trouver en pièce jointe votre quittance de loyer.\n\nCordialement,",
-                pdfPath: (string)$r['pdf_path'],
+                pdfPath: $pdfPath,
             ));
 
             if (!$sendRes->success) {
-                $this->receipts->markSent((int)$r['id'], $sendRes->errorMessage ?? 'send failed');
+                $this->logger->error('receipts.send.item.failed', [
+                    'receipt_id' => $receiptId,
+                    'error' => $sendRes->errorMessage ?? 'send failed',
+                ]);
+
+                $this->receipts->markSent($receiptId, $sendRes->errorMessage ?? 'send failed');
                 $failed++;
                 continue;
             }
 
-            $this->receipts->markSent((int)$r['id'], null);
+            $this->receipts->markSent($receiptId, null);
 
-            $filename = sprintf('receipt-%s-tenant-%d.pdf', $month->toString(), (int) $r['tenant_id']);
+            $filename = sprintf('receipt-%s-tenant-%d.pdf', $month->toString(), $tenantId);
 
             $prefix = trim($this->nextcloudTargetDir, '/');
-
             $remotePath = $prefix !== ''
                 ? $prefix . '/' . $filename
                 : sprintf('archives/%s/%s', $month->toString(), $filename);
 
+            $this->logger->info('receipts.archive.item', [
+                'receipt_id' => $receiptId,
+                'remotePath' => $remotePath,
+            ]);
+
             $archiveRes = $this->archiver->archive(new ArchiveReceiptRequest(
-                localPdfPath: (string) $r['pdf_path'],
+                localPdfPath: $pdfPath,
                 remotePath: $remotePath,
             ));
 
-
             if (!$archiveRes->success) {
-                $this->receipts->markArchived((int)$r['id'], null, $archiveRes->errorMessage ?? 'archive failed');
+                $this->logger->error('receipts.archive.item.failed', [
+                    'receipt_id' => $receiptId,
+                    'remotePath' => $remotePath,
+                    'error' => $archiveRes->errorMessage ?? 'archive failed',
+                ]);
+
+                $this->receipts->markArchived($receiptId, null, $archiveRes->errorMessage ?? 'archive failed');
+
+                // on considère "sent" même si l’archive échoue (email déjà envoyé)
                 $sent++;
                 continue;
             }
 
-            $this->receipts->markArchived((int)$r['id'], $archiveRes->archivedPath, null);
+            $this->receipts->markArchived($receiptId, $archiveRes->archivedPath, null);
             $sent++;
-
         }
 
-        return ['processed' => $processed, 'sent' => $sent, 'failed' => $failed, 'skipped' => $skipped];
+        $this->logger->info('receipts.send.uc.done', [
+            'month' => $month->toString(),
+            'processed' => $processed,
+            'sent' => $sent,
+            'failed' => $failed,
+            'skipped' => $skipped,
+             'force' => $force ? 1 : 0,
+
+        ]);
+
+        return [
+            'processed' => $processed,
+            'sent' => $sent,
+            'failed' => $failed,
+            'skipped' => $skipped,
+        ];
     }
 }

@@ -19,6 +19,12 @@ interface ReceiptRepository
 
     public function findPendingByMonth(\RentReceiptCli\Core\Domain\ValueObject\Month $month): array;
 
+        /**
+     * Returns all receipts for a month (including already sent ones).
+     */
+    public function findByMonth(Month $month): array;
+
+
     public function markSent(int $receiptId, ?string $errorMessage): void;
 
     public function markArchived(int $receiptId, ?string $archivedPath, ?string $errorMessage): void;

@@ -7,13 +7,16 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use RentReceiptCli\Application\Cli\ConsoleKernel;
 use RentReceiptCli\Infrastructure\Logging\FileLogger;
+use RentReceiptCli\Infrastructure\Logging\NullLogger;
 
 $config = require __DIR__ . '/../config/config.php';
 
-$logger = new FileLogger(
-    logDir: $config['logging']['path'],
-    level: $config['logging']['level'] ?? 'info'
-);
+$logger = isset($config['logging']['dir'])
+    ? new FileLogger(
+        logDir: (string) $config['logging']['dir'],
+        level: (string) ($config['logging']['level'] ?? 'info')
+    )
+    : new NullLogger();
 
 $application = ConsoleKernel::build($logger);
 

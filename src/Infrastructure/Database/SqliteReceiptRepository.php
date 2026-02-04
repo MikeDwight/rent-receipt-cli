@@ -33,6 +33,11 @@ SQL;
         return (bool) $stmt->fetchColumn();
     }
 
+    /**
+     * Persists receipt and returns receipt id.
+     *
+     * @param array<string,mixed> $data
+     */
     public function create(array $data): int
     {
         if (!isset($data['rent_payment_id'])) {
@@ -57,6 +62,11 @@ SQL;
     }
 
     /**
+     * All receipts for a month (including already sent).
+     *
+     * IMPORTANT: must return the same shape as findPendingByMonth()
+     * (tenant_email/tenant_name included) because the use case expects it.
+     *
      * @return array<int, array<string, mixed>>
      */
     public function findByMonth(Month $month): array
@@ -72,9 +82,12 @@ SELECT
     r.archive_path,
     r.archive_error,
     rp.period,
-    rp.tenant_id
+    rp.tenant_id,
+    t.email AS tenant_email,
+    t.full_name AS tenant_name
 FROM receipts r
 JOIN rent_payments rp ON rp.id = r.rent_payment_id
+JOIN tenants t ON t.id = rp.tenant_id
 WHERE rp.period = :period
 ORDER BY r.id ASC
 SQL;
@@ -84,12 +97,15 @@ SQL;
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
+
     /**
- * @return array<int, array<string, mixed>>
- */
-public function findPendingByMonth(Month $month): array
-{
-    $sql = <<<SQL
+     * Pending receipts for a month (not yet sent).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findPendingByMonth(Month $month): array
+    {
+        $sql = <<<SQL
 SELECT
     r.id,
     r.rent_payment_id,
@@ -108,43 +124,41 @@ JOIN rent_payments rp ON rp.id = r.rent_payment_id
 JOIN tenants t ON t.id = rp.tenant_id
 WHERE rp.period = :period
   AND r.sent_at IS NULL
-AND (r.send_error IS NULL OR r.send_error != '')
-
+  AND (r.send_error IS NULL OR r.send_error = '')
 ORDER BY r.id ASC
 SQL;
 
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->execute(['period' => $month->toString()]);
-
-    return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-}
-
-public function markSent(int $receiptId, ?string $errorMessage): void
-{
-    if ($errorMessage === null) {
-        $sql = "UPDATE receipts SET sent_at = datetime('now'), send_error = NULL WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(['id' => $receiptId]);
-        return;
+        $stmt->execute(['period' => $month->toString()]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    $sql = "UPDATE receipts SET send_error = :err WHERE id = :id";
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->execute(['id' => $receiptId, 'err' => $errorMessage]);
-}
+    public function markSent(int $receiptId, ?string $errorMessage): void
+    {
+        if ($errorMessage === null) {
+            $sql = "UPDATE receipts SET sent_at = datetime('now'), send_error = NULL WHERE id = :id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute(['id' => $receiptId]);
+            return;
+        }
 
-public function markArchived(int $receiptId, ?string $archivedPath, ?string $errorMessage): void
-{
-    if ($errorMessage === null && $archivedPath !== null) {
-        $sql = "UPDATE receipts SET archived_at = datetime('now'), archive_path = :path, archive_error = NULL WHERE id = :id";
+        $sql = "UPDATE receipts SET send_error = :err WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute(['id' => $receiptId, 'path' => $archivedPath]);
-        return;
+        $stmt->execute(['id' => $receiptId, 'err' => $errorMessage]);
     }
 
-    $sql = "UPDATE receipts SET archive_error = :err WHERE id = :id";
-    $stmt = $this->pdo->prepare($sql);
-    $stmt->execute(['id' => $receiptId, 'err' => $errorMessage ?? 'archive failed']);
-}
+    public function markArchived(int $receiptId, ?string $archivedPath, ?string $errorMessage): void
+    {
+        if ($errorMessage === null && $archivedPath !== null) {
+            $sql = "UPDATE receipts SET archived_at = datetime('now'), archive_path = :path, archive_error = NULL WHERE id = :id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute(['id' => $receiptId, 'path' => $archivedPath]);
+            return;
+        }
 
+        $sql = "UPDATE receipts SET archive_error = :err WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['id' => $receiptId, 'err' => $errorMessage ?? 'archive failed']);
+    }
 }

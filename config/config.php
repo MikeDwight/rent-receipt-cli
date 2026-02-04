@@ -16,9 +16,9 @@ return [
         'address' => '10 rue Exemple, 75000 Paris',
     ],
     'pdf' => [
-    'wkhtmltopdf_binary' => getenv('WKHTMLTOPDF_BIN') ?: 'wkhtmltopdf',
-    'keep_temp_html_on_failure' => (getenv('PDF_KEEP_TEMP_HTML') ?: '1') === '1',
-    'tmp_dir' => getenv('PDF_TMP_DIR') ?: null,
+        'wkhtmltopdf_binary' => getenv('WKHTMLTOPDF_BIN') ?: 'wkhtmltopdf',
+        'keep_temp_html_on_failure' => (getenv('PDF_KEEP_TEMP_HTML') ?: '1') === '1',
+        'tmp_dir' => getenv('PDF_TMP_DIR') ?: null,
 
     'defaults' => [
         'page_size' => 'A4',
@@ -31,24 +31,24 @@ return [
     ],
     ],
     'smtp' => [
-    'enabled' => true,
-    'host' => getenv('SMTP_HOST') ?: 'smtp.example.com',
-    'port' => (int) (getenv('SMTP_PORT') ?: 587),
-    'username' => getenv('SMTP_USERNAME') ?: '',
-    'password' => getenv('SMTP_PASSWORD') ?: '',
-    'encryption' => getenv('SMTP_ENCRYPTION') ?: 'tls', // 'tls' | 'ssl' | '' (none)
-    'from_email' => getenv('SMTP_FROM_EMAIL') ?: 'no-reply@example.com',
-    'from_name' => getenv('SMTP_FROM_NAME') ?: ($landlordName ?? 'Bailleur'),
+        'enabled' => true,
+        'host' => getenv('SMTP_HOST') ?: 'smtp.example.com',
+        'port' => (int) (getenv('SMTP_PORT') ?: 587),
+        'username' => getenv('SMTP_USERNAME') ?: '',
+        'password' => getenv('SMTP_PASSWORD') ?: '',
+        'encryption' => getenv('SMTP_ENCRYPTION') ?: 'tls', // 'tls' | 'ssl' | '' (none)
+        'from_email' => getenv('SMTP_FROM_EMAIL') ?: 'no-reply@example.com',
+        'from_name' => getenv('SMTP_FROM_NAME') ?: ($landlordName ?? 'Bailleur'),
     ],
     'nextcloud' => [
-    'base_url' => getenv('NEXTCLOUD_BASE_URL') ?: '',
-    'username' => getenv('NEXTCLOUD_USERNAME') ?: '',
-    'password' => getenv('NEXTCLOUD_PASSWORD') ?: '',
-    'base_path' => getenv('NEXTCLOUD_BASE_PATH') ?: '/Remote.php/dav/files',
-    'target_dir' => getenv('NEXTCLOUD_TARGET_DIR') ?: '',
+        'base_url' => getenv('NEXTCLOUD_BASE_URL') ?: '',
+        'username' => getenv('NEXTCLOUD_USERNAME') ?: '',
+        'password' => getenv('NEXTCLOUD_PASSWORD') ?: '',
+        'base_path' => getenv('NEXTCLOUD_BASE_PATH') ?: '/Remote.php/dav/files',
+        'target_dir' => getenv('NEXTCLOUD_TARGET_DIR') ?: '',
     ],
     'logging' => [
-    'path' => __DIR__ . '/../var/logs',
-    'level' => 'info',
+        'dir' => getenv('APP_LOG_DIR') ?: __DIR__ . '/../var/log',
+        'level' => getenv('APP_LOG_LEVEL') ?: 'info',
     ],
 ];
