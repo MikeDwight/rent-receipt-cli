@@ -86,7 +86,10 @@ $nextcloud = new \RentReceiptCli\Infrastructure\Storage\NextcloudWebdavArchiver(
 $archiver = new FallbackArchiver($nextcloud, $local, $this->logger);
 
 
-$uc = new SendReceiptsForMonth($receiptsRepo, $sender, $archiver);
+$targetDir = (string) (($config['nextcloud']['target_dir'] ?? ''));
+
+$uc = new SendReceiptsForMonth($receiptsRepo, $sender, $archiver, $targetDir);
+
 
 $monthVo = Month::fromString($month);
 $res = $uc->execute($monthVo, $dryRun);

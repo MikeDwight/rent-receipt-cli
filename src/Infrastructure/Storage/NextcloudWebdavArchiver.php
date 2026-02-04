@@ -66,8 +66,14 @@ final class NextcloudWebdavArchiver implements ReceiptArchiverInterface
     {
         $base = rtrim($this->baseUrl, '/');
         $bp = '/' . trim($this->basePath, '/');
-        $rp = '/' . ltrim($remotePath, '/');
 
-        return $base . $bp . '/' . rawurlencode($this->username) . $rp;
+        $segments = array_values(array_filter(
+            explode('/', ltrim($remotePath, '/')),
+            fn ($s) => $s !== ''
+        ));
+
+        $encodedPath = '/' . implode('/', array_map('rawurlencode', $segments));
+
+        return $base . $bp . '/' . rawurlencode($this->username) . $encodedPath;
     }
 }

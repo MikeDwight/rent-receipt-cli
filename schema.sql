@@ -36,8 +36,12 @@ CREATE TABLE receipts (
     rent_payment_id INTEGER NOT NULL,
     pdf_path TEXT NOT NULL,
     sent_at TEXT,
+    send_error TEXT,
     archived_at TEXT,
+    archive_path TEXT,
+    archive_error TEXT,
     created_at TEXT NOT NULL,
     UNIQUE (rent_payment_id),
     FOREIGN KEY (rent_payment_id) REFERENCES rent_payments(id)
 );
+

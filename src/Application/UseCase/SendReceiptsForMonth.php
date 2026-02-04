@@ -17,6 +17,7 @@ final class SendReceiptsForMonth
         private readonly ReceiptRepository $receipts,
         private readonly ReceiptSenderInterface $sender,
         private readonly ReceiptArchiverInterface $archiver,
+        private readonly string $nextcloudTargetDir = '',
     ) {}
 
     /**
@@ -56,10 +57,19 @@ final class SendReceiptsForMonth
 
             $this->receipts->markSent((int)$r['id'], null);
 
+            $filename = sprintf('receipt-%s-tenant-%d.pdf', $month->toString(), (int) $r['tenant_id']);
+
+            $prefix = trim($this->nextcloudTargetDir, '/');
+
+            $remotePath = $prefix !== ''
+                ? $prefix . '/' . $filename
+                : sprintf('archives/%s/%s', $month->toString(), $filename);
+
             $archiveRes = $this->archiver->archive(new ArchiveReceiptRequest(
-                localPdfPath: (string)$r['pdf_path'],
-                remotePath: sprintf('archives/%s/receipt-%s-tenant-%d.pdf', $month->toString(), $month->toString(), (int)$r['tenant_id']),
+                localPdfPath: (string) $r['pdf_path'],
+                remotePath: $remotePath,
             ));
+
 
             if (!$archiveRes->success) {
                 $this->receipts->markArchived((int)$r['id'], null, $archiveRes->errorMessage ?? 'archive failed');

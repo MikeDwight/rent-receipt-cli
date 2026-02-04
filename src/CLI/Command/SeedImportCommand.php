@@ -47,7 +47,16 @@ final class SeedImportCommand extends Command
         return Command::FAILURE;
     }
 
-    $pdo = new \PDO('sqlite:database/database.sqlite');
+    $config = require __DIR__ . '/../../../config/config.php';
+    $dbPath = (string) ($config['paths']['database'] ?? '');
+
+    if ($dbPath === '') {
+        $output->writeln('<error>Database path is not configured</error>');
+        return Command::FAILURE;
+    }
+
+
+    $pdo = new \PDO('sqlite:' . $dbPath);
     $importer = new \RentReceiptCli\Application\Seed\SeedImporter($pdo);
 
     $report = $importer->import($seed, $dryRun);

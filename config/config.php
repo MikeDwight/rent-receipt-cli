@@ -45,6 +45,7 @@ return [
     'username' => getenv('NEXTCLOUD_USERNAME') ?: '',
     'password' => getenv('NEXTCLOUD_PASSWORD') ?: '',
     'base_path' => getenv('NEXTCLOUD_BASE_PATH') ?: '/Remote.php/dav/files',
+    'target_dir' => getenv('NEXTCLOUD_TARGET_DIR') ?: '',
     ],
     'logging' => [
     'path' => __DIR__ . '/../var/logs',
