@@ -31,7 +31,7 @@ return [
     ],
     ],
     'smtp' => [
-    'enabled' => false,
+    'enabled' => true,
     'host' => getenv('SMTP_HOST') ?: 'smtp.example.com',
     'port' => (int) (getenv('SMTP_PORT') ?: 587),
     'username' => getenv('SMTP_USERNAME') ?: '',
