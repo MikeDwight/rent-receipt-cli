@@ -43,7 +43,7 @@ final class FileLogger implements Logger
         $file = ($level === 'error') ? 'error.log' : 'app.log';
 
         $path = $this->logDir . DIRECTORY_SEPARATOR . $file;
-        $result = @file_put_contents($path, $line . PHP_EOL, FILE_APPEND);
+        $result = file_put_contents($path, $line . PHP_EOL, FILE_APPEND);
 
         if ($result === false) {
             error_log('FileLogger: failed to write log file: ' . $path);

@@ -84,6 +84,12 @@ final class ReceiptSendCommand extends Command
 
             $output->writeln('<error>Failed to send receipts. See logs for details.</error>');
 
+            // On affiche tout de même un résumé stable, même en cas d\'erreur.
+            $output->writeln(sprintf('Processed pending: %d', $res['processed']));
+            $output->writeln(sprintf('Sent: %d', $res['sent']));
+            $output->writeln(sprintf('Failed: %d', $res['failed']));
+            $output->writeln(sprintf('Dry-run skipped: %d', $res['skipped']));
+
             return Command::FAILURE;
         }
         $output->writeln(sprintf('Processed pending: %d', $res['processed']));
