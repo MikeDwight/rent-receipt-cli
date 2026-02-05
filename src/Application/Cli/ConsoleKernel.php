@@ -20,8 +20,12 @@ use RentReceiptCli\Application\Command\OwnerShowCommand;
 use RentReceiptCli\Infrastructure\Database\PdoConnectionFactory;
 use RentReceiptCli\Infrastructure\Database\SqliteOwnerRepository;
 use RentReceiptCli\Application\Command\OwnerUpsertCommand;
-
-
+use RentReceiptCli\Application\Command\OwnerDeleteCommand;
+use RentReceiptCli\Application\Command\TenantListCommand;
+use RentReceiptCli\Application\Command\TenantShowCommand;
+use RentReceiptCli\Application\Command\TenantUpsertCommand;
+use RentReceiptCli\Application\Command\TenantDeleteCommand;
+use RentReceiptCli\Infrastructure\Database\SqliteTenantRepository;
 
 
 
@@ -34,6 +38,7 @@ final class ConsoleKernel
         $pdo = (new PdoConnectionFactory($config['paths']['database']))->create();
 
         $ownerRepo = new SqliteOwnerRepository($pdo);
+        $tenantRepo = new SqliteTenantRepository($pdo);
 
         $app->add(new OwnerListCommand($ownerRepo));
         $app->add(new OwnerShowCommand($ownerRepo));
@@ -47,6 +52,11 @@ final class ConsoleKernel
         $app->add(new DbMigrateMarkCommand());
         $app->add(new DbStatusCommand());
         $app->add(new OwnerUpsertCommand($ownerRepo));
+        $app->add(new OwnerDeleteCommand($ownerRepo));
+        $app->add(new TenantListCommand($tenantRepo));
+        $app->add(new TenantShowCommand($tenantRepo));
+        $app->add(new TenantUpsertCommand($tenantRepo));
+        $app->add(new TenantDeleteCommand($tenantRepo));
 
 
 
