@@ -12,8 +12,9 @@ final class FileLogger implements Logger
         private readonly string $logDir,
         private readonly string $level = 'info'
     ) {
-        if (!is_dir($this->logDir)) {
-            @mkdir($this->logDir, 0775, true);
+        if (!is_dir($this->logDir) && !mkdir($this->logDir, 0775, true) && !is_dir($this->logDir)) {
+            // Fallback silencieux mais non bloquant : on loguera éventuellement vers error_log si l'écriture de fichier échoue.
+            error_log('FileLogger: cannot create log directory: ' . $this->logDir);
         }
     }
 
@@ -41,7 +42,12 @@ final class FileLogger implements Logger
         $line = $this->formatLine($level, $message, $context);
         $file = ($level === 'error') ? 'error.log' : 'app.log';
 
-        @file_put_contents($this->logDir . DIRECTORY_SEPARATOR . $file, $line . PHP_EOL, FILE_APPEND);
+        $path = $this->logDir . DIRECTORY_SEPARATOR . $file;
+        $result = @file_put_contents($path, $line . PHP_EOL, FILE_APPEND);
+
+        if ($result === false) {
+            error_log('FileLogger: failed to write log file: ' . $path);
+        }
     }
 
     private function shouldLog(string $level): bool

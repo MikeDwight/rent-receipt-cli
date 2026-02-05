@@ -13,20 +13,16 @@ use RentReceiptCli\Application\Cli\ConsoleInputValidator;
 use RentReceiptCli\Application\Port\Logger;
 use RentReceiptCli\Application\UseCase\SendReceiptsForMonth;
 use RentReceiptCli\Core\Domain\ValueObject\Month;
-use RentReceiptCli\Infrastructure\Database\PdoConnectionFactory;
-use RentReceiptCli\Infrastructure\Database\SqliteReceiptRepository;
-use RentReceiptCli\Infrastructure\Mail\SmtpReceiptSender;
-use RentReceiptCli\Infrastructure\Storage\FallbackArchiver;
-use RentReceiptCli\Infrastructure\Storage\LocalReceiptArchiver;
-use RentReceiptCli\Infrastructure\Storage\NextcloudWebdavArchiver;
 
 
 
 
 final class ReceiptSendCommand extends Command
 {
-    public function __construct(private readonly Logger $logger)
-    {
+    public function __construct(
+        private readonly Logger $logger,
+        private readonly SendReceiptsForMonth $useCase,
+    ) {
         parent::__construct();
     }
 
@@ -47,7 +43,17 @@ final class ReceiptSendCommand extends Command
         $dryRun = (bool) $input->getOption('dry-run');
         $force = (bool) $input->getOption('force');
 
-        
+        if (!ConsoleInputValidator::isValidMonth($month)) {
+            $output->writeln('<error>Invalid month format. Expected YYYY-MM (e.g. 2026-01)</error>');
+            return Command::INVALID;
+        }
+
+        $res = [
+            'processed' => 0,
+            'sent' => 0,
+            'failed' => 0,
+            'skipped' => 0,
+        ];
 
         $this->logger->info('receipts.send.start', [
             'month' => $month,
@@ -55,38 +61,9 @@ final class ReceiptSendCommand extends Command
             'force' => $force ? 1 : 0,
         ]);
 
-                try {
-            $config = require dirname(__DIR__, 3) . '/config/config.php';
-
-            $pdo = (new PdoConnectionFactory($config['paths']['database']))->create();
-
-            $receiptsRepo = new SqliteReceiptRepository($pdo);
-
-            $sender = new SmtpReceiptSender($config['smtp']);
-
-            $local = new LocalReceiptArchiver($config['paths']['storage_pdf']);
-
-            $ncCfg = $config['nextcloud'] ?? [];
-            $nextcloud = new NextcloudWebdavArchiver(
-                (string) ($ncCfg['base_url'] ?? ''),
-                (string) ($ncCfg['username'] ?? ''),
-                (string) ($ncCfg['password'] ?? ''),
-                (string) ($ncCfg['base_path'] ?? '/remote.php/dav/files'),
-            );
-
-            $archiver = new FallbackArchiver($nextcloud, $local, $this->logger);
-
-            $useCase = new SendReceiptsForMonth(
-                receipts: $receiptsRepo,
-                sender: $sender,
-                archiver: $archiver,
-                nextcloudTargetDir: (string) ($ncCfg['target_dir'] ?? ''),
-                logger: $this->logger,
-            );
-
+        try {
             $monthVo = Month::fromString($month);
-            $res = $useCase->execute($monthVo, $dryRun, $force);
-
+            $res = $this->useCase->execute($monthVo, $dryRun, $force);
 
             $this->logger->info('receipts.send.done', [
                 'month' => $month,
@@ -104,21 +81,16 @@ final class ReceiptSendCommand extends Command
                 'error' => $e->getMessage(),
                 'type' => $e::class,
             ]);
-            throw $e;
+
+            $output->writeln('<error>Failed to send receipts. See logs for details.</error>');
+
+            return Command::FAILURE;
         }
-
-
-
-
         $output->writeln(sprintf('Processed pending: %d', $res['processed']));
         $output->writeln(sprintf('Sent: %d', $res['sent']));
         $output->writeln(sprintf('Failed: %d', $res['failed']));
         $output->writeln(sprintf('Dry-run skipped: %d', $res['skipped']));
 
-
-        
-
         return Command::SUCCESS;
-
-            }
+    }
 }

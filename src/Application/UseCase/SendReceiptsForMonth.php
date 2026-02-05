@@ -83,6 +83,34 @@ final class SendReceiptsForMonth
                 'pdf' => $pdfPath,
             ]);
 
+            if (!filter_var($tenantEmail, FILTER_VALIDATE_EMAIL)) {
+                $message = 'invalid tenant email';
+                $this->logger->error('receipts.send.item.invalid_email', [
+                    'receipt_id' => $receiptId,
+                    'tenant_id' => $tenantId,
+                    'email' => $tenantEmail,
+                    'reason' => $message,
+                ]);
+
+                $this->receipts->markSent($receiptId, $message);
+                $failed++;
+                continue;
+            }
+
+            if ($pdfPath === '' || !is_file($pdfPath)) {
+                $message = 'pdf not found: ' . $pdfPath;
+                $this->logger->error('receipts.send.item.missing_pdf', [
+                    'receipt_id' => $receiptId,
+                    'tenant_id' => $tenantId,
+                    'pdf' => $pdfPath,
+                    'reason' => $message,
+                ]);
+
+                $this->receipts->markSent($receiptId, $message);
+                $failed++;
+                continue;
+            }
+
             $sendRes = $this->sender->send(new SendReceiptRequest(
                 toEmail: $tenantEmail,
                 toName: $tenantName,
@@ -104,6 +132,8 @@ final class SendReceiptsForMonth
 
             $this->receipts->markSent($receiptId, null);
 
+            // NOTE: le pattern d'archive est volontairement simple et local au use case.
+            // Il pourra être extrait dans un petit helper dédié si les besoins évoluent.
             $filename = sprintf('receipt-%s-tenant-%d.pdf', $month->toString(), $tenantId);
 
             $prefix = trim($this->nextcloudTargetDir, '/');

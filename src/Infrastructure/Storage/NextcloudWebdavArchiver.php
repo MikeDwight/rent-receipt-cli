@@ -30,7 +30,7 @@ final class NextcloudWebdavArchiver implements ReceiptArchiverInterface
 
         $remote = $this->buildRemoteUrl($request->remotePath);
 
-        $data = @file_get_contents($src);
+        $data = file_get_contents($src);
         if ($data === false) {
             return ArchiveReceiptResult::fail('cannot read pdf: ' . $src);
         }

@@ -27,7 +27,7 @@ final class LocalReceiptArchiver implements ReceiptArchiverInterface
             return ArchiveReceiptResult::fail('cannot create dir: ' . $dir);
         }
 
-        if (!@copy($src, $dest)) {
+        if (!copy($src, $dest)) {
             return ArchiveReceiptResult::fail('copy failed to: ' . $dest);
         }
 
