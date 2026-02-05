@@ -1,4 +1,4 @@
-# Rent Receipt CLI
+## Rent Receipt CLI
 
 Rent Receipt CLI is a PHP 8 command-line tool designed to generate, send, and archive rent receipts in a reliable and traceable way.
 
@@ -40,6 +40,7 @@ The CLI is strictly an interface layer and never contains business logic.
 - Archive PDFs to Nextcloud via WebDAV
 - Local PDF fallback storage
 - CLI-only (no web interface)
+- Admin CLI to manage owners, tenants, properties, payments and receipts
 
 ---
 
@@ -89,7 +90,7 @@ The application follows a layered architecture with strict separation of concern
 - PHP 8.x (CLI)
 - Composer
 - SQLite3
-- wkhtmltopdf
+- wkhtmltopdf binary available on `PATH` (or configured)
 
 ---
 
@@ -99,9 +100,15 @@ The application follows a layered architecture with strict separation of concern
 composer install
 cp .env.example .env
 
-# Configure your .env (SMTP, Nextcloud, etc.)
+# Configure your .env (SMTP, Nextcloud, storage paths, etc.)
 
+# Create / migrate the SQLite database
+php bin/rent-receipt db:migrate
+
+# Optionally import initial data from seed/seed.yml
 php bin/rent-receipt seed:import
+
+# First dry-run for a given month
 php bin/rent-receipt receipt:generate 2026-06
 php bin/rent-receipt receipt:send 2026-06 --dry-run
 ```
@@ -110,16 +117,19 @@ php bin/rent-receipt receipt:send 2026-06 --dry-run
 
 ## Database
 
-The project uses a single SQLite database file (`database.sqlite`).
+The project uses a single SQLite database file (typically `database.sqlite` in the project data directory).
 
 - SQLite is the single source of truth
 - Receipts are generated once per payment and month
 - Sending and archiving are tracked separately
 - Local PDF storage acts as a fallback
 
-```md
-The database schema is managed via SQLite migrations.
-A baseline `init_schema` migration allows recreating a fresh database at any time.
+The database schema is managed via SQLite migrations located in `database/migrations/`  
+(for example `2026_02_01_000000_init_schema.sql`).  
+This allows you to recreate a fresh database at any time from the migrations.
+
+Additionally, a base schema (`schema.sql`) and a YAML seed file (`seed/seed.yml`) are provided
+to bootstrap a realistic dataset via the `seed:import` command.
 
 ---
 
@@ -137,6 +147,9 @@ Configuration is done via environment variables (`.env`).
 | NEXTCLOUD_TARGET_DIR            | Target directory    |
 | WKHTMLTOPDF_BIN                 | Path to wkhtmltopdf |
 
+If SMTP or Nextcloud are not configured, you can still run the tool in **dry-run**
+or using the local-only archiver/sender implementations.
+
 ---
 
 ## SMTP (Email)
@@ -152,16 +165,10 @@ Final delivery (bounces) is intentionally out of scope for V1.
 
 Generated PDFs can be archived to Nextcloud via WebDAV.
 
-The target directory is configurable using:
+The target directory is configurable using an environment variable, for example:
 
-```
-NEXTCLOUD_TARGET_DIR
-```
-
-Example:
-
-```
-/Perso/Investissements/JJ Rousseau/test-quittance
+```bash
+NEXTCLOUD_TARGET_DIR="/Perso/Investissements/JJ Rousseau/test-quittance"
 ```
 
 ---
