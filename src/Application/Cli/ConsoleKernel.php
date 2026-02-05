@@ -31,6 +31,10 @@ use RentReceiptCli\Application\Command\PropertyShowCommand;
 use RentReceiptCli\Application\Command\PropertyUpsertCommand;
 use RentReceiptCli\Application\Command\PropertyDeleteCommand;
 use RentReceiptCli\Infrastructure\Database\SqlitePropertyRepository;
+use RentReceiptCli\Application\Command\PaymentListCommand;
+use RentReceiptCli\Application\Command\PaymentShowCommand;
+use RentReceiptCli\Application\Command\PaymentUpsertCommand;
+use RentReceiptCli\Application\Command\PaymentDeleteCommand;
 use RentReceiptCli\Application\UseCase\GenerateReceiptsForMonth;
 use RentReceiptCli\Application\UseCase\SendReceiptsForMonth;
 use RentReceiptCli\Infrastructure\Database\SqliteRentPaymentRepository;
@@ -58,6 +62,7 @@ final class ConsoleKernel
         $ownerRepo = new SqliteOwnerRepository($pdo);
         $tenantRepo = new SqliteTenantRepository($pdo);
         $propertyRepo = new SqlitePropertyRepository($pdo);
+        $rentPaymentRepo = new SqliteRentPaymentRepository($pdo);
 
         $generateUseCase = self::buildGenerateReceiptsForMonthUseCase($config, $pdo, $logger);
         $sendUseCase = self::buildSendReceiptsForMonthUseCase($config, $pdo, $logger);
@@ -83,6 +88,10 @@ final class ConsoleKernel
         $app->add(new PropertyShowCommand($propertyRepo));
         $app->add(new PropertyUpsertCommand($propertyRepo));
         $app->add(new PropertyDeleteCommand($propertyRepo));
+        $app->add(new PaymentListCommand($rentPaymentRepo));
+        $app->add(new PaymentShowCommand($rentPaymentRepo));
+        $app->add(new PaymentUpsertCommand($rentPaymentRepo, $tenantRepo, $propertyRepo));
+        $app->add(new PaymentDeleteCommand($rentPaymentRepo));
 
         return $app;
     }
