@@ -58,10 +58,20 @@ final class DbStatusCommand extends Command
 
         $output->writeln('<info>Tables</info>');
         foreach ($tables as $table) {
+            $existsStmt = $pdo->prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name = :name LIMIT 1;");
+            $existsStmt->execute([':name' => $table]);
+            $exists = $existsStmt->fetchColumn() !== false;
+
+            if (!$exists) {
+                $output->writeln(sprintf('  %-13s %s', $table, '<comment>missing</comment>'));
+                continue;
+            }
+
             $stmt = $pdo->query("SELECT COUNT(*) FROM {$table}");
             $count = $stmt !== false ? (int) $stmt->fetchColumn() : 0;
             $output->writeln(sprintf('  %-13s %d', $table, $count));
         }
+
 
         return Command::SUCCESS;
     }
