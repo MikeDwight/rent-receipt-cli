@@ -26,6 +26,12 @@ use RentReceiptCli\Application\Command\TenantShowCommand;
 use RentReceiptCli\Application\Command\TenantUpsertCommand;
 use RentReceiptCli\Application\Command\TenantDeleteCommand;
 use RentReceiptCli\Infrastructure\Database\SqliteTenantRepository;
+use RentReceiptCli\Application\Command\PropertyListCommand;
+use RentReceiptCli\Application\Command\PropertyShowCommand;
+use RentReceiptCli\Application\Command\PropertyUpsertCommand;
+use RentReceiptCli\Application\Command\PropertyDeleteCommand;
+use RentReceiptCli\Infrastructure\Database\SqlitePropertyRepository;
+
 
 
 
@@ -39,6 +45,7 @@ final class ConsoleKernel
 
         $ownerRepo = new SqliteOwnerRepository($pdo);
         $tenantRepo = new SqliteTenantRepository($pdo);
+        $propertyRepo = new SqlitePropertyRepository($pdo);
 
         $app->add(new OwnerListCommand($ownerRepo));
         $app->add(new OwnerShowCommand($ownerRepo));
@@ -56,7 +63,11 @@ final class ConsoleKernel
         $app->add(new TenantListCommand($tenantRepo));
         $app->add(new TenantShowCommand($tenantRepo));
         $app->add(new TenantUpsertCommand($tenantRepo));
-        $app->add(new TenantDeleteCommand($tenantRepo));
+        $app->add(new TenantDeleteCommand($tenantRepo));   
+        $app->add(new PropertyListCommand($propertyRepo));
+        $app->add(new PropertyShowCommand($propertyRepo));
+        $app->add(new PropertyUpsertCommand($propertyRepo));
+        $app->add(new PropertyDeleteCommand($propertyRepo));
 
 
 
