@@ -116,10 +116,13 @@
 
     <div class="section">
       <p style="margin: 0 0 8px 0">
-        Je soussigné(e) <strong>{{landlord_name}}</strong>, reconnais avoir reçu
-        de <strong>{{tenant_name}}</strong> la somme de
-        <strong>{{total_amount_eur}}</strong> au titre du loyer et des charges
-        pour la période indiquée ci-dessus.
+        Je soussigné(e) <strong>{{landlord_name}}</strong>, propriétaire du
+        logement désigné ci-dessus, reconnais avoir reçu de
+        <strong>{{tenant_name}}</strong> la somme de
+        <strong>{{total_amount_eur}}</strong> au titre du paiement du loyer et
+        des charges pour la période de location du
+        <strong>{{period_start}}</strong> au <strong>{{period_end}}</strong> et
+        lui en donne quittance, sous réserve de tous nos droits.
       </p>
       <p class="muted" style="margin: 0">Date de paiement : {{paid_at}}</p>
     </div>
@@ -150,6 +153,9 @@
     </div>
 
     <div class="signature">
+      <div class="muted">
+        Fait à {{issued_city}}, le {{issued_at}}
+      </div>
       <div>Fait pour servir et valoir ce que de droit.</div>
       <div class="muted">Signature du bailleur</div>
       <div class="signature-line"></div>
@@ -159,6 +165,12 @@
       <div class="muted">
         Rappel : la quittance détaille les sommes versées en distinguant le
         loyer et les charges.
+      </div>
+      <div class="muted" style="margin-top: 6px">
+        Cette quittance annule tous les reçus qui auraient pu être établis
+        précédemment en cas de paiement partiel du montant du présent terme.
+        Elle est à conserver pendant trois ans par le locataire (loi n°
+        89-462 du 6 juillet 1989 : art. 7-1).
       </div>
     </div>
   </body>

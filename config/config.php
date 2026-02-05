@@ -14,6 +14,8 @@ return [
     'landlord' => [
         'name' => 'Mike Dwight',
         'address' => '10 rue Exemple, 75000 Paris',
+        // Ville utilisée pour la mention "Fait à {ville}, le {date}"
+        'city' => getenv('RECEIPT_ISSUE_CITY') ?: '',
     ],
     'pdf' => [
         'wkhtmltopdf_binary' => getenv('WKHTMLTOPDF_BIN') ?: 'wkhtmltopdf',

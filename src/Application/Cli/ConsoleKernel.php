@@ -164,6 +164,7 @@ final class ConsoleKernel
 
         $landlordName = (string) ($config['landlord']['name'] ?? 'Bailleur');
         $landlordAddress = (string) ($config['landlord']['address'] ?? '');
+        $landlordCity = (string) ($config['landlord']['city'] ?? '');
 
         return new GenerateReceiptsForMonth(
             $paymentsRepo,
@@ -173,6 +174,7 @@ final class ConsoleKernel
             $pdfOptions,
             $landlordName,
             $landlordAddress,
+            $landlordCity,
             $logger,
         );
     }
