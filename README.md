@@ -3,6 +3,7 @@
 Rent Receipt CLI is a PHP 8 command-line tool designed to generate, send, and archive rent receipts in a reliable and traceable way.
 
 This project was built as a real-world utility for a small landlord use case, with a strong focus on:
+
 - correctness and traceability
 - clean architecture
 - long-term maintainability
@@ -116,7 +117,9 @@ The project uses a single SQLite database file (`database.sqlite`).
 - Sending and archiving are tracked separately
 - Local PDF storage acts as a fallback
 
-The schema is defined in `schema.sql`.
+```md
+The database schema is managed via SQLite migrations.
+A baseline `init_schema` migration allows recreating a fresh database at any time.
 
 ---
 
@@ -124,15 +127,15 @@ The schema is defined in `schema.sql`.
 
 Configuration is done via environment variables (`.env`).
 
-| Variable | Description |
-|--------|------------|
-| SMTP_HOST / SMTP_PORT | SMTP server |
-| SMTP_USER / SMTP_PASS | SMTP credentials |
-| SMTP_FROM | Sender email |
-| NEXTCLOUD_BASE_URL | WebDAV endpoint |
-| NEXTCLOUD_USER / NEXTCLOUD_PASS | WebDAV credentials |
-| NEXTCLOUD_TARGET_DIR | Target directory |
-| WKHTMLTOPDF_BIN | Path to wkhtmltopdf |
+| Variable                        | Description         |
+| ------------------------------- | ------------------- |
+| SMTP_HOST / SMTP_PORT           | SMTP server         |
+| SMTP_USER / SMTP_PASS           | SMTP credentials    |
+| SMTP_FROM                       | Sender email        |
+| NEXTCLOUD_BASE_URL              | WebDAV endpoint     |
+| NEXTCLOUD_USER / NEXTCLOUD_PASS | WebDAV credentials  |
+| NEXTCLOUD_TARGET_DIR            | Target directory    |
+| WKHTMLTOPDF_BIN                 | Path to wkhtmltopdf |
 
 ---
 
@@ -191,6 +194,50 @@ php bin/rent-receipt receipt:send:status 2026-06
 
 ---
 
+## Admin CLI (Data management)
+
+The project includes a minimal but complete **admin CLI layer** to manage all data
+without editing the SQLite database manually.
+
+This layer is designed for:
+
+- real-world usage
+- safety (destructive operations are guarded)
+- auditability
+- interview defensibility
+
+### Database
+
+```bash
+php bin/rent-receipt db:status
+php bin/rent-receipt db:migrate
+php bin/rent-receipt db:migrate:status
+
+### Owner
+
+php bin/rent-receipt owner:list
+php bin/rent-receipt owner:show <id>
+php bin/rent-receipt owner:upsert --id=1 --full-name="..." --email="..." --address="..."
+php bin/rent-receipt owner:delete <id> [--force]
+
+### Tenant
+php bin/rent-receipt tenant:list
+php bin/rent-receipt tenant:show <id>
+php bin/rent-receipt tenant:upsert --full-name="..." --email="..." --address="..."
+php bin/rent-receipt tenant:delete <id> [--force]
+
+###Properties
+php bin/rent-receipt property:list
+php bin/rent-receipt property:show <id>
+php bin/rent-receipt property:upsert --owner-id=1 --label="..." --address="..." --rent=... --charges=...
+php bin/rent-receipt property:delete <id> [--force]
+
+All destructive operations are protected:
+deletion is refused if related data exists
+confirmation is required unless --force is used
+
+---
+
 ## Limitations (V1 – intentional)
 
 - SMTP acceptance does not guarantee final delivery
@@ -214,3 +261,4 @@ These limitations are deliberate to keep the project focused, reliable, and easy
 ## License
 
 MIT
+```

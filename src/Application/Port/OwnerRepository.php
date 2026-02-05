@@ -19,4 +19,9 @@ interface OwnerRepository
     public function create(string $fullName, string $email, string $address): int;
 
     public function update(int $id, string $fullName, string $email, string $address): void;
+
+    public function delete(int $id): void;
+
+    public function countPropertiesForOwner(int $ownerId): int;
+
 }

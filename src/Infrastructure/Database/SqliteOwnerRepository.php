@@ -90,5 +90,20 @@ final class SqliteOwnerRepository implements OwnerRepository
         ]);
     }
 
+    public function countPropertiesForOwner(int $ownerId): int
+    {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM properties WHERE owner_id = :id;");
+        $stmt->execute([':id' => $ownerId]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function delete(int $id): void
+    {
+        $stmt = $this->pdo->prepare("DELETE FROM owners WHERE id = :id;");
+        $stmt->execute([':id' => $id]);
+    }
+
+
 }
 
