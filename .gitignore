@@ -19,3 +19,4 @@ database.sqlite
 
 # Temporary files
 /var/
+env.local.sh

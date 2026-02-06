@@ -1,12 +1,12 @@
 version: 1
 
-tenant:
-  full_name: "Alice Martin"
-  email: "tenant@example.com"
-  address: "22 avenue de Lyon, 69000 Lyon"
+owner:
+  full_name: "Mickael et Priscilla Alves de Carvalho"
+  email: "mickael.ha@gmail.com"
+  address: "55 route de saint saturnin, 73000 Chambéry"
 
 property:
-  label: "APT-001"
-  address: "22 avenue de Lyon, 69000 Lyon"
-  rent_amount_cents: 85000
+  label: "Studio JJ. Rousseau"
+  address: "401 rue Costa de Beauregard, 73000 Chambéry"
+  rent_amount_cents: 49000
   charges_amount_cents: 5000

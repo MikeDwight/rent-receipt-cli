@@ -23,11 +23,12 @@ final class YamlSeedLoader
         // Root
         $this->requireKey($data, "version");
 
-        // Tenant (matches tenants table)
-        $this->requireKey($data, "tenant");
-        $this->requireKey($data, "tenant.full_name");
-        $this->requireKey($data, "tenant.email");
-        $this->requireKey($data, "tenant.address");
+        // Owner (matches owners table)
+        $this->requireKey($data, "owner");
+        $this->requireKey($data, "owner.full_name");
+        $this->requireKey($data, "owner.email");
+        $this->requireKey($data, "owner.address");
+        
 
         // Property (matches properties table)
         $this->requireKey($data, "property");

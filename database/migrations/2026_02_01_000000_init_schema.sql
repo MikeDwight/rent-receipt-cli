@@ -60,6 +60,4 @@ CREATE TABLE IF NOT EXISTS receipts (
     FOREIGN KEY (rent_payment_id) REFERENCES rent_payments(id)
 );
 
--- Default owner (placeholder)
-INSERT INTO owners (full_name, email, address, created_at)
-VALUES ('Bailleur', '', '', datetime('now'));
+
