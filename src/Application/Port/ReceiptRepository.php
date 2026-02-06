@@ -24,6 +24,14 @@ interface ReceiptRepository
      */
     public function findByMonth(Month $month): array;
 
+        /**
+     * Receipts already sent but not archived yet.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findSentNotArchivedByMonth(Month $month): array;
+
+
 
     public function markSent(int $receiptId, ?string $errorMessage): void;
 
