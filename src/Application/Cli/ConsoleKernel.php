@@ -9,6 +9,7 @@ use RentReceiptCli\Application\Command\ReceiptListCommand;
 use RentReceiptCli\Application\Command\ReceiptGenerateCommand;
 use RentReceiptCli\Application\Command\ReceiptSendCommand;
 use RentReceiptCli\Application\Command\ReceiptSendStatusCommand;
+use RentReceiptCli\Application\Command\ReceiptProcessCommand;
 use RentReceiptCli\Application\Command\ReceiptEnvCheckCommand;
 use RentReceiptCli\CLI\Command\SeedImportCommand;
 use RentReceiptCli\Application\Port\Logger;
@@ -38,6 +39,7 @@ use RentReceiptCli\Application\Command\PaymentUpsertCommand;
 use RentReceiptCli\Application\Command\PaymentDeleteCommand;
 use RentReceiptCli\Application\UseCase\GenerateReceiptsForMonth;
 use RentReceiptCli\Application\UseCase\SendReceiptsForMonth;
+use RentReceiptCli\Application\UseCase\ProcessReceiptForPayment;
 use RentReceiptCli\Infrastructure\Database\SqliteRentPaymentRepository;
 use RentReceiptCli\Infrastructure\Database\SqliteReceiptRepository;
 use RentReceiptCli\Infrastructure\Pdf\WkhtmltopdfPdfGenerator;
@@ -48,6 +50,9 @@ use RentReceiptCli\Infrastructure\Mail\SmtpReceiptSender;
 use RentReceiptCli\Infrastructure\Storage\LocalReceiptArchiver;
 use RentReceiptCli\Infrastructure\Storage\NextcloudWebdavArchiver;
 use RentReceiptCli\Infrastructure\Storage\FallbackArchiver;
+use RentReceiptCli\Infrastructure\Process\SqliteUpsertPaymentForPeriod;
+use RentReceiptCli\Infrastructure\Process\SinglePaymentReceiptGenerator;
+use RentReceiptCli\Infrastructure\Process\SingleReceiptSenderAndArchiver;
 
 
 
@@ -74,6 +79,8 @@ final class ConsoleKernel
         $app->add(new ReceiptGenerateCommand($logger, $generateUseCase));
         $app->add(new ReceiptSendCommand($logger, $sendUseCase));
         $app->add(new ReceiptSendStatusCommand());
+        $processReceiptUseCase = self::buildProcessReceiptForPaymentUseCase($config, $pdo, $ownerRepo, $logger);
+        $app->add(new ReceiptProcessCommand($logger, $processReceiptUseCase));
         $app->add(new ReceiptEnvCheckCommand());
         $app->add(new SeedImportCommand());
         $app->add(new DbMigrateCommand());
@@ -210,5 +217,73 @@ final class ConsoleKernel
             $landlordCity,
             $logger,
         );
+    }
+
+    private static function buildProcessReceiptForPaymentUseCase(array $config, \PDO $pdo, SqliteOwnerRepository $ownerRepo, Logger $logger): ProcessReceiptForPayment
+    {
+        $rentPaymentRepo = new SqliteRentPaymentRepository($pdo);
+        $receiptsRepo = self::buildReceiptRepository($pdo);
+        $propertyRepo = new SqlitePropertyRepository($pdo);
+
+        $templatesPath = (string) ($config['paths']['templates'] ?? (__DIR__ . '/../../../templates'));
+        $renderer = new SimpleTemplateRenderer();
+        $htmlBuilder = new ReceiptHtmlBuilder($renderer, $templatesPath . '/receipt.html');
+        $pdfConfig = $config['pdf'] ?? [];
+        $pdf = new WkhtmltopdfPdfGenerator(
+            wkhtmltopdfBinary: (string) ($pdfConfig['wkhtmltopdf_binary'] ?? 'wkhtmltopdf'),
+            keepTempHtmlOnFailure: (bool) ($pdfConfig['keep_temp_html_on_failure'] ?? true),
+            tmpDir: $pdfConfig['tmp_dir'] ?? null,
+        );
+        $pdfDefaults = $pdfConfig['defaults'] ?? [];
+        $pdfOptions = new PdfOptions(
+            pageSize: (string) ($pdfDefaults['page_size'] ?? 'A4'),
+            orientation: (string) ($pdfDefaults['orientation'] ?? 'Portrait'),
+            marginTopMm: (int) ($pdfDefaults['margin_top_mm'] ?? 10),
+            marginRightMm: (int) ($pdfDefaults['margin_right_mm'] ?? 10),
+            marginBottomMm: (int) ($pdfDefaults['margin_bottom_mm'] ?? 10),
+            marginLeftMm: (int) ($pdfDefaults['margin_left_mm'] ?? 10),
+            enableLocalFileAccess: (bool) ($pdfDefaults['enable_local_file_access'] ?? true),
+        );
+
+        $landlordName = (string) ($config['landlord']['name'] ?? '');
+        $landlordAddress = (string) ($config['landlord']['address'] ?? '');
+        if (empty($landlordName) || empty($landlordAddress)) {
+            $owners = $ownerRepo->listAll();
+            if (empty($owners)) {
+                throw new \RuntimeException(
+                    'Aucun bailleur trouvé. Importez un owner (seed ou owner:upsert) ou définissez LANDLORD_NAME/LANDLORD_ADDRESS.'
+                );
+            }
+            $dbOwner = $owners[0];
+            if (empty($landlordName)) {
+                $landlordName = $dbOwner['full_name'];
+            }
+            if (empty($landlordAddress)) {
+                $landlordAddress = $dbOwner['address'];
+            }
+        }
+        $landlordCity = (string) ($config['landlord']['city'] ?? '');
+
+        $upsertPort = new SqliteUpsertPaymentForPeriod($rentPaymentRepo, $propertyRepo);
+        $genPort = new SinglePaymentReceiptGenerator(
+            $rentPaymentRepo,
+            $receiptsRepo,
+            $ownerRepo,
+            $htmlBuilder,
+            $pdf,
+            $pdfOptions,
+            $landlordName,
+            $landlordAddress,
+            $landlordCity,
+        );
+        $ncCfg = $config['nextcloud'] ?? [];
+        $sendPort = new SingleReceiptSenderAndArchiver(
+            $receiptsRepo,
+            self::buildReceiptSender($config),
+            self::buildReceiptArchiver($config, $logger),
+            (string) ($ncCfg['target_dir'] ?? ''),
+        );
+
+        return new ProcessReceiptForPayment($upsertPort, $genPort, $sendPort);
     }
 }

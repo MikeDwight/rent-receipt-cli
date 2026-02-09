@@ -13,6 +13,13 @@ final class Month
         private readonly int $month
     ) {}
 
+    public static function current(?\DateTimeZone $timezone = null): self
+    {
+        $tz = $timezone ?? new \DateTimeZone('Europe/Paris');
+        $now = new \DateTimeImmutable('now', $tz);
+        return new self((int) $now->format('Y'), (int) $now->format('n'));
+    }
+
     public static function fromString(string $value): self
     {
         // Expected format: YYYY-MM

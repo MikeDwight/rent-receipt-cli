@@ -52,6 +52,42 @@ interface RentPaymentRepository
     public function findById(int $id): ?array;
 
     /**
+     * Finds a rent payment by tenant, property and period (for upsert logic).
+     *
+     * @return array{
+     *   id:int,
+     *   tenant_id:int,
+     *   property_id:int,
+     *   period:string,
+     *   rent_amount:int,
+     *   charges_amount:int,
+     *   paid_at:string,
+     *   created_at:string
+     * }|null
+     */
+    public function findByTenantPropertyAndPeriod(int $tenantId, int $propertyId, string $period): ?array;
+
+    /**
+     * Finds a rent payment by id with all data needed to generate receipt (joins tenant, property).
+     *
+     * @return array{
+     *   rent_payment_id:int,
+     *   tenant_id:int,
+     *   property_id:int,
+     *   month:string,
+     *   rent_amount:int,
+     *   charges_amount:int,
+     *   paid_at:string,
+     *   tenant_name:string,
+     *   tenant_email:string,
+     *   tenant_address:string,
+     *   property_label:string,
+     *   property_address:string
+     * }|null
+     */
+    public function findOneWithDetails(int $paymentId): ?array;
+
+    /**
      * Creates a rent payment and returns its id.
      */
     public function create(

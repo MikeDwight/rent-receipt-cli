@@ -224,4 +224,86 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
         $stmt = $this->pdo->prepare("DELETE FROM rent_payments WHERE id = :id");
         $stmt->execute([':id' => $id]);
     }
+
+    public function findByTenantPropertyAndPeriod(int $tenantId, int $propertyId, string $period): ?array
+    {
+        $sql = <<<SQL
+        SELECT
+            id,
+            tenant_id,
+            property_id,
+            period,
+            rent_amount,
+            charges_amount,
+            paid_at,
+            created_at
+        FROM rent_payments
+        WHERE tenant_id = :tenant_id
+          AND property_id = :property_id
+          AND period = :period
+        LIMIT 1
+        SQL;
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            ':tenant_id' => $tenantId,
+            ':property_id' => $propertyId,
+            ':period' => $period,
+        ]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row === false) {
+            return null;
+        }
+
+        $row['id'] = (int) $row['id'];
+        $row['tenant_id'] = (int) $row['tenant_id'];
+        $row['property_id'] = (int) $row['property_id'];
+        $row['rent_amount'] = (int) $row['rent_amount'];
+        $row['charges_amount'] = (int) $row['charges_amount'];
+
+        return $row;
+    }
+
+    public function findOneWithDetails(int $paymentId): ?array
+    {
+        $sql = <<<SQL
+        SELECT
+            rp.id AS rent_payment_id,
+            rp.tenant_id,
+            rp.property_id,
+            rp.period AS month,
+            rp.rent_amount AS rent_amount,
+            rp.charges_amount AS charges_amount,
+            rp.paid_at AS paid_at,
+
+            t.full_name  AS tenant_name,
+            t.email AS tenant_email,
+            t.address AS tenant_address,
+
+            p.label AS property_label,
+            p.address AS property_address
+        FROM rent_payments rp
+        JOIN tenants t ON t.id = rp.tenant_id
+        JOIN properties p ON p.id = rp.property_id
+        WHERE rp.id = :payment_id
+        LIMIT 1
+        SQL;
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['payment_id' => $paymentId]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row === false) {
+            return null;
+        }
+
+        $row['rent_payment_id'] = (int) $row['rent_payment_id'];
+        $row['tenant_id'] = (int) $row['tenant_id'];
+        $row['property_id'] = (int) $row['property_id'];
+        $row['rent_amount'] = (int) $row['rent_amount'];
+        $row['charges_amount'] = (int) $row['charges_amount'];
+
+        return $row;
+    }
 }

@@ -199,4 +199,71 @@ SQL;
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(['id' => $receiptId, 'err' => $errorMessage ?? 'archive failed']);
     }
+
+    public function findByRentPaymentId(int $rentPaymentId): ?array
+    {
+        $sql = <<<SQL
+        SELECT
+            id,
+            rent_payment_id,
+            pdf_path,
+            sent_at,
+            archived_at,
+            created_at
+        FROM receipts
+        WHERE rent_payment_id = :rent_payment_id
+        LIMIT 1
+        SQL;
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['rent_payment_id' => $rentPaymentId]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row === false) {
+            return null;
+        }
+
+        $row['id'] = (int) $row['id'];
+        $row['rent_payment_id'] = (int) $row['rent_payment_id'];
+
+        return $row;
+    }
+
+    public function findOneDetailed(int $receiptId): ?array
+    {
+        $sql = <<<SQL
+        SELECT
+            r.id,
+            r.rent_payment_id,
+            r.pdf_path,
+            r.sent_at,
+            r.send_error,
+            r.archived_at,
+            r.archive_path,
+            r.archive_error,
+            rp.period,
+            rp.tenant_id,
+            t.email AS tenant_email,
+            t.full_name AS tenant_name
+        FROM receipts r
+        JOIN rent_payments rp ON rp.id = r.rent_payment_id
+        JOIN tenants t ON t.id = rp.tenant_id
+        WHERE r.id = :receipt_id
+        LIMIT 1
+        SQL;
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['receipt_id' => $receiptId]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row === false) {
+            return null;
+        }
+
+        $row['id'] = (int) $row['id'];
+        $row['rent_payment_id'] = (int) $row['rent_payment_id'];
+        $row['tenant_id'] = (int) $row['tenant_id'];
+
+        return $row;
+    }
 }
