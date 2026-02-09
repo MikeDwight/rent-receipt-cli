@@ -164,7 +164,60 @@ Behavior:
 
 ---
 
-## 9) Logs & diagnostics
+## 9) Mobile one-click flow (`receipt:process`)
+
+The `receipt:process` command is designed to be triggered from a phone (e.g. via SSH/Tailscale or Automate): one command performs upsert payment → generate PDF → send email → archive.
+
+**Prerequisites:** same as the rest of the runbook: load `env.local.sh`, run `receipt:env-check`, and ensure tenant/property exist.
+
+### Dry-run (simulation)
+
+```bash
+set -a && source env.local.sh && set +a
+php bin/rent-receipt receipt:env:check
+php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1 --dry-run
+```
+
+No DB write, no PDF, no email, no upload. Output is machine-friendly (one line per step).
+
+### Real execution
+
+```bash
+php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1
+```
+
+Without `--yes` or `--no-interaction`, the command shows a recap and asks for confirmation (y/N). For non-interactive use (e.g. Automate):
+
+```bash
+php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1 --yes
+```
+
+Optional overrides:
+
+- `--period=YYYY-MM` — default is current month (Europe/Paris)
+- `--paid-at=YYYY-MM-DD` — default is today (Europe/Paris)
+
+### Retry archive-only
+
+If the receipt was sent but archive failed, re-run with `--rearchive` to force upload without resending email:
+
+```bash
+php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1 --rearchive --yes
+```
+
+### Resend email (use sparingly)
+
+To force sending the email again even if already sent:
+
+```bash
+php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1 --resend --yes
+```
+
+Use only when necessary (e.g. tenant did not receive the first email).
+
+---
+
+## 10) Logs & diagnostics
 
 ```bash
 ls -lah var/log
@@ -176,7 +229,7 @@ Use logs to diagnose SMTP, PDF generation, WebDAV, or database issues.
 
 ---
 
-## Monthly checklist (quick)
+## Monthly checklist (quick) — batch flow
 
 ```bash
 source env.local.sh

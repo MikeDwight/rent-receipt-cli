@@ -42,6 +42,18 @@ The CLI is strictly an interface layer and never contains business logic.
 - CLI-only (no web interface)
 - Admin CLI to manage owners, tenants, properties, payments and receipts
 
+### One-click mobile flow
+
+The `receipt:process` command is designed to be triggered from a phone (e.g. via SSH over Tailscale or from an automation app like Automate): one invocation upserts the payment (using property defaults), generates the PDF, sends the email, and archives to Nextcloud. Idempotent: re-running skips already-sent/archived steps unless `--resend` or `--rearchive` is used.
+
+Example (after loading env and running `receipt:env:check`):
+
+```bash
+php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1 --yes
+```
+
+See the Runbook section **“Mobile one-click flow”** for dry-run, overrides (`--period`, `--paid-at`), and retry options.
+
 ---
 
 ## Architecture & Design
@@ -119,4 +131,4 @@ php bin/rent-receipt seed:import
 
 ## 📘 Runbook — Operations (A to Z)
 
-See full operational guide in this README.
+See full operational guide in the RUNBOOK.
