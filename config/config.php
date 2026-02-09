@@ -12,8 +12,10 @@ return [
         'storage_logs' => dirname(__DIR__) . '/storage/logs',
     ],
     'landlord' => [
-        'name' => 'Mike Dwight',
-        'address' => '10 rue Exemple, 75000 Paris',
+        // Override optionnel via env (LANDLORD_NAME / LANDLORD_ADDRESS)
+        // Si non défini, sera chargé depuis la DB (table owners) dans ConsoleKernel
+        'name' => getenv('LANDLORD_NAME') ?: '',
+        'address' => getenv('LANDLORD_ADDRESS') ?: '',
         // Ville utilisée pour la mention "Fait à {ville}, le {date}"
         'city' => getenv('RECEIPT_ISSUE_CITY') ?: '',
     ],
@@ -36,17 +38,17 @@ return [
         'enabled' => true,
         'host' => getenv('SMTP_HOST') ?: 'smtp.example.com',
         'port' => (int) (getenv('SMTP_PORT') ?: 587),
-        'username' => getenv('SMTP_USERNAME') ?: '',
-        'password' => getenv('SMTP_PASSWORD') ?: '',
+        'username' => getenv('SMTP_USER') ?: '',
+        'password' => getenv('SMTP_PASS') ?: '',
         'encryption' => getenv('SMTP_ENCRYPTION') ?: 'tls', // 'tls' | 'ssl' | '' (none)
-        'from_email' => getenv('SMTP_FROM_EMAIL') ?: 'no-reply@example.com',
+        'from_email' => getenv('SMTP_FROM') ?: 'no-reply@example.com',
         'from_name' => getenv('SMTP_FROM_NAME') ?: ($landlordName ?? 'Bailleur'),
     ],
     'nextcloud' => [
         'base_url' => getenv('NEXTCLOUD_BASE_URL') ?: '',
-        'username' => getenv('NEXTCLOUD_USERNAME') ?: '',
-        'password' => getenv('NEXTCLOUD_PASSWORD') ?: '',
-        'base_path' => getenv('NEXTCLOUD_BASE_PATH') ?: '/Remote.php/dav/files',
+        'username' => getenv('NEXTCLOUD_USER') ?: '',
+        'password' => getenv('NEXTCLOUD_PASS') ?: '',
+        'base_path' => getenv('NEXTCLOUD_BASE_PATH') ?: '/remote.php/dav/files',
         'target_dir' => getenv('NEXTCLOUD_TARGET_DIR') ?: '',
     ],
     'logging' => [

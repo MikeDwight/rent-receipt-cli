@@ -9,6 +9,7 @@ use RentReceiptCli\Application\Command\ReceiptListCommand;
 use RentReceiptCli\Application\Command\ReceiptGenerateCommand;
 use RentReceiptCli\Application\Command\ReceiptSendCommand;
 use RentReceiptCli\Application\Command\ReceiptSendStatusCommand;
+use RentReceiptCli\Application\Command\ReceiptEnvCheckCommand;
 use RentReceiptCli\CLI\Command\SeedImportCommand;
 use RentReceiptCli\Application\Port\Logger;
 use RentReceiptCli\Application\Command\DbMigrateCommand;
@@ -64,7 +65,7 @@ final class ConsoleKernel
         $propertyRepo = new SqlitePropertyRepository($pdo);
         $rentPaymentRepo = new SqliteRentPaymentRepository($pdo);
 
-        $generateUseCase = self::buildGenerateReceiptsForMonthUseCase($config, $pdo, $logger);
+        $generateUseCase = self::buildGenerateReceiptsForMonthUseCase($config, $pdo, $ownerRepo, $logger);
         $sendUseCase = self::buildSendReceiptsForMonthUseCase($config, $pdo, $logger);
 
         $app->add(new OwnerListCommand($ownerRepo));
@@ -72,8 +73,9 @@ final class ConsoleKernel
         $app->add(new ReceiptListCommand());
         $app->add(new ReceiptGenerateCommand($logger, $generateUseCase));
         $app->add(new ReceiptSendCommand($logger, $sendUseCase));
-        $app->add(new SeedImportCommand());
         $app->add(new ReceiptSendStatusCommand());
+        $app->add(new ReceiptEnvCheckCommand());
+        $app->add(new SeedImportCommand());
         $app->add(new DbMigrateCommand());
         $app->add(new DbMigrateStatusCommand());
         $app->add(new DbMigrateMarkCommand());
@@ -142,7 +144,7 @@ final class ConsoleKernel
         );
     }
 
-    private static function buildGenerateReceiptsForMonthUseCase(array $config, \PDO $pdo, Logger $logger): GenerateReceiptsForMonth
+    private static function buildGenerateReceiptsForMonthUseCase(array $config, \PDO $pdo, SqliteOwnerRepository $ownerRepo, Logger $logger): GenerateReceiptsForMonth
     {
         $paymentsRepo = new SqliteRentPaymentRepository($pdo);
         $receiptsRepo = new SqliteReceiptRepository($pdo);
@@ -171,8 +173,30 @@ final class ConsoleKernel
             enableLocalFileAccess: (bool) ($pdfDefaults['enable_local_file_access'] ?? true),
         );
 
-        $landlordName = (string) ($config['landlord']['name'] ?? 'Bailleur');
+        // Règle de source de vérité : DB (owners) par défaut, env (LANDLORD_NAME/ADDRESS) en override optionnel
+        $landlordName = (string) ($config['landlord']['name'] ?? '');
         $landlordAddress = (string) ($config['landlord']['address'] ?? '');
+
+        // Si override env non défini, charger depuis DB (premier owner)
+        if (empty($landlordName) || empty($landlordAddress)) {
+            $owners = $ownerRepo->listAll();
+            if (empty($owners)) {
+                throw new \RuntimeException(
+                    'Aucun bailleur trouvé en base de données. ' .
+                    'Veuillez soit : (1) importer un owner via seed ou owner:upsert, ' .
+                    'soit (2) définir LANDLORD_NAME et LANDLORD_ADDRESS dans votre fichier .env'
+                );
+            }
+            // Utiliser le premier owner de la DB
+            $dbOwner = $owners[0];
+            if (empty($landlordName)) {
+                $landlordName = $dbOwner['full_name'];
+            }
+            if (empty($landlordAddress)) {
+                $landlordAddress = $dbOwner['address'];
+            }
+        }
+
         $landlordCity = (string) ($config['landlord']['city'] ?? '');
 
         return new GenerateReceiptsForMonth(
