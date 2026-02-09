@@ -80,9 +80,74 @@ php bin/rent-receipt tenant:show 1
 
 ---
 
-## 4) Payment management (business trigger)
+## 4) Mobile / One-click payment flow (recommended)
 
-Create a rent payment:
+**This is the standard workflow for daily operations.** When a payment is received, use `receipt:process` to handle the entire flow in one command.
+
+### Prerequisites
+
+Same as the rest of the runbook:
+- Load environment: `set -a && source env.local.sh && set +a`
+- Verify config: `php bin/rent-receipt receipt:env:check`
+- Ensure tenant and property exist (see sections 2-3)
+
+### Dry-run (validation)
+
+Always validate with dry-run first:
+
+```bash
+php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1 --dry-run
+```
+
+Output shows what would happen without any side effects (no DB write, no PDF, no email, no upload).
+
+### Real execution
+
+```bash
+php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1 --yes
+```
+
+**What happens automatically:**
+- Payment upserted (uses property defaults for rent/charges, updates if payment already exists)
+- PDF generated if not already generated
+- Email sent if not already sent
+- PDF archived to Nextcloud if not already archived
+
+**Idempotence:** Safe to re-run. Already-completed steps are skipped automatically.
+
+### Optional overrides
+
+- `--period=YYYY-MM` — override default (current month Europe/Paris)
+- `--paid-at=YYYY-MM-DD` — override default (today Europe/Paris)
+
+### Retry archive-only
+
+If email was sent but archive failed:
+
+```bash
+php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1 --rearchive --yes
+```
+
+This retries archive without resending email.
+
+### Resend email (exceptionnel)
+
+Only if tenant did not receive the email:
+
+```bash
+php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1 --resend --yes
+```
+
+Use sparingly.
+
+---
+
+## 5) Payment management (manual / batch)
+
+**Note:** For daily operations, use `receipt:process` (section 4) which handles payment upsert automatically.  
+The commands below are for manual payment management or batch operations.
+
+Create a rent payment manually:
 
 ```bash
 php bin/rent-receipt payment:upsert \
@@ -101,11 +166,9 @@ php bin/rent-receipt payment:list
 php bin/rent-receipt payment:show 1
 ```
 
-A payment for a given month is the prerequisite for receipt generation.
-
 ---
 
-## 5) Receipt generation (PDF)
+## 6) Receipt generation (PDF) — batch workflow
 
 ```bash
 php bin/rent-receipt receipt:generate 2026-02
@@ -118,7 +181,12 @@ Rules:
 
 ---
 
-## 6) Send & archive — dry-run
+## 7) Send & archive — batch workflow
+
+**Note:** For daily operations, use `receipt:process` (section 4).  
+The commands below (`receipt:generate` and `receipt:send`) are for **batch monthly processing** or **audit/catch-up** scenarios.
+
+### Dry-run
 
 ```bash
 php bin/rent-receipt receipt:send 2026-02 --dry-run
@@ -127,9 +195,7 @@ php bin/rent-receipt receipt:send:status 2026-02
 
 Dry-run performs no email sending and no upload.
 
----
-
-## 7) Send & archive — real execution
+### Real execution
 
 ```bash
 php bin/rent-receipt receipt:send 2026-02
@@ -149,9 +215,9 @@ Meaning:
 
 ---
 
-## 8) Retry archive-only (recovery)
+## 8) Retry archive-only (batch recovery)
 
-If a receipt was sent but not archived:
+If a receipt was sent but not archived (batch workflow):
 
 ```bash
 sqlite3 database.sqlite "UPDATE receipts SET archived_at = NULL WHERE id = 1;"
@@ -162,62 +228,11 @@ Behavior:
 - No email resent
 - Archive retried
 
----
-
-## 9) Mobile one-click flow (`receipt:process`)
-
-The `receipt:process` command is designed to be triggered from a phone (e.g. via SSH/Tailscale or Automate): one command performs upsert payment → generate PDF → send email → archive.
-
-**Prerequisites:** same as the rest of the runbook: load `env.local.sh`, run `receipt:env-check`, and ensure tenant/property exist.
-
-### Dry-run (simulation)
-
-```bash
-set -a && source env.local.sh && set +a
-php bin/rent-receipt receipt:env:check
-php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1 --dry-run
-```
-
-No DB write, no PDF, no email, no upload. Output is machine-friendly (one line per step).
-
-### Real execution
-
-```bash
-php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1
-```
-
-Without `--yes` or `--no-interaction`, the command shows a recap and asks for confirmation (y/N). For non-interactive use (e.g. Automate):
-
-```bash
-php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1 --yes
-```
-
-Optional overrides:
-
-- `--period=YYYY-MM` — default is current month (Europe/Paris)
-- `--paid-at=YYYY-MM-DD` — default is today (Europe/Paris)
-
-### Retry archive-only
-
-If the receipt was sent but archive failed, re-run with `--rearchive` to force upload without resending email:
-
-```bash
-php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1 --rearchive --yes
-```
-
-### Resend email (use sparingly)
-
-To force sending the email again even if already sent:
-
-```bash
-php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1 --resend --yes
-```
-
-Use only when necessary (e.g. tenant did not receive the first email).
+**Alternative:** Use `receipt:process --rearchive` (section 4) for single-payment retry.
 
 ---
 
-## 10) Logs & diagnostics
+## 9) Logs & diagnostics
 
 ```bash
 ls -lah var/log
@@ -229,7 +244,21 @@ Use logs to diagnose SMTP, PDF generation, WebDAV, or database issues.
 
 ---
 
-## Monthly checklist (quick) — batch flow
+## 10) Monthly checklist
+
+### Daily workflow (recommended)
+
+When a payment is received:
+
+```bash
+source env.local.sh
+php bin/rent-receipt receipt:env:check
+php bin/rent-receipt receipt:process --tenant-id=X --property-id=Y --yes
+```
+
+### Batch monthly workflow (alternative)
+
+For processing multiple payments at once or monthly catch-up:
 
 ```bash
 source env.local.sh

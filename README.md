@@ -42,17 +42,28 @@ The CLI is strictly an interface layer and never contains business logic.
 - CLI-only (no web interface)
 - Admin CLI to manage owners, tenants, properties, payments and receipts
 
-### One-click mobile flow
+### One-click payment workflow (recommended)
 
-The `receipt:process` command is designed to be triggered from a phone (e.g. via SSH over Tailscale or from an automation app like Automate): one invocation upserts the payment (using property defaults), generates the PDF, sends the email, and archives to Nextcloud. Idempotent: re-running skips already-sent/archived steps unless `--resend` or `--rearchive` is used.
-
-Example (after loading env and running `receipt:env:check`):
+The `receipt:process` command is the **standard workflow** for daily operations: when a payment is received, one command handles the entire flow automatically.
 
 ```bash
 php bin/rent-receipt receipt:process --tenant-id=1 --property-id=1 --yes
 ```
 
-See the Runbook section **“Mobile one-click flow”** for dry-run, overrides (`--period`, `--paid-at`), and retry options.
+**What it does automatically:**
+- Detects current month (Europe/Paris timezone)
+- Upserts the payment (idempotent: updates if exists, creates if new)
+- Generates PDF receipt if not already generated
+- Sends email if not already sent
+- Archives to Nextcloud if not already archived
+
+**Key features:**
+- **Idempotent**: safe to re-run multiple times (skips already-completed steps)
+- **Dry-run**: `--dry-run` for simulation without any side effects
+- **Recovery flags**: `--rearchive` to retry archive-only, `--resend` to force email resend (use sparingly)
+- **Mobile-friendly**: can be triggered from phone via SSH/Tailscale or automation apps
+
+See the Runbook section **"Mobile / One-click payment flow (recommended)"** for detailed operational procedures.
 
 ---
 
