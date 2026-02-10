@@ -1,3 +1,5 @@
+<!-- CI TEST: deployed from GitHub Actions -->
+
 # Rent Receipt CLI
 
 Rent Receipt CLI is a PHP 8 command-line tool designed to generate, send, and archive rent receipts in a reliable and traceable way.
