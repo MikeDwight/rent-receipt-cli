@@ -27,7 +27,13 @@ final class AuthController extends AbstractController
         $body = (array) $request->getParsedBody();
         $password = (string) ($body['password'] ?? '');
 
-        if ($this->passwordHash !== '' && password_verify($password, $this->passwordHash)) {
+        $valid = $this->passwordHash !== '' && (
+            str_starts_with($this->passwordHash, '$2y$')
+                ? password_verify($password, $this->passwordHash)
+                : hash_equals($this->passwordHash, $password)
+        );
+
+        if ($valid) {
             $_SESSION['authenticated'] = true;
             return $this->redirect($response, '/');
         }
