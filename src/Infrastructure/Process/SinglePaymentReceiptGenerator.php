@@ -61,7 +61,7 @@ final class SinglePaymentReceiptGenerator implements GenerateReceiptForPaymentPo
         $tenantId = (int) $paymentData['tenant_id'];
 
         // Build PDF path (same format as GenerateReceiptsForMonth)
-        $pdfPath = sprintf('var/receipts/receipt-%s-tenant-%d.pdf', $month->toString(), $tenantId);
+        $pdfPath = sprintf(dirname(__DIR__, 3) . '/var/receipts/receipt-%s-tenant-%d.pdf', $month->toString(), $tenantId);
 
         // Calculate period bounds
         $startDate = new DateTimeImmutable(sprintf('%04d-%02d-01', $month->year(), $month->month()));
