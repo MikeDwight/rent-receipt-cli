@@ -14,6 +14,7 @@ interface GenerateReceiptForPaymentPort
     public function generate(
         int $paymentId,
         string $period,
-        bool $dryRun
+        bool $dryRun,
+        array $options = []
     ): array;
 }

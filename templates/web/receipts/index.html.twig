@@ -78,15 +78,21 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col">
-                            <label class="form-label small">Période</label>
-                            <input type="text" name="period" class="form-control form-control-sm" value="{{ month }}" placeholder="YYYY-MM">
+                    <div class="mb-2">
+                        <label class="form-label small">Période</label>
+                        <div class="d-flex gap-1 mb-1">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="fillPeriod(0)">Mois en cours</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="fillPeriod(-1)">Mois précédent</button>
                         </div>
-                        <div class="col">
-                            <label class="form-label small">Payé le</label>
-                            <input type="date" name="paid_at" class="form-control form-control-sm" value="{{ "now"|date("Y-m-d") }}">
+                        <div class="d-flex gap-1 align-items-center">
+                            <input type="date" id="period_start" name="period_start" class="form-control form-control-sm" required>
+                            <span class="small text-muted">au</span>
+                            <input type="date" id="period_end" name="period_end" class="form-control form-control-sm" required>
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small">Payé le</label>
+                        <input type="date" name="paid_at" class="form-control form-control-sm" value="{{ "now"|date("Y-m-d") }}">
                     </div>
                     <button type="submit" class="btn btn-primary btn-sm w-100">Traiter →</button>
                 </form>
@@ -94,4 +100,21 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function fillPeriod(offset) {
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const first = year + '-' + String(month + 1).padStart(2, '0') + '-01';
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    const last = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(lastDay).padStart(2, '0');
+    document.getElementById('period_start').value = first;
+    document.getElementById('period_end').value = last;
+}
+fillPeriod(-1);
+</script>
 {% endblock %}

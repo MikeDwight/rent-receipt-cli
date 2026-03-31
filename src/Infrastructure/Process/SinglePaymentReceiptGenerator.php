@@ -31,7 +31,7 @@ final class SinglePaymentReceiptGenerator implements GenerateReceiptForPaymentPo
         private readonly string $landlordIssueCity,
     ) {}
 
-    public function generate(int $paymentId, string $period, bool $dryRun): array
+    public function generate(int $paymentId, string $period, bool $dryRun, array $options = []): array
     {
         if ($dryRun) {
             return [
@@ -63,9 +63,19 @@ final class SinglePaymentReceiptGenerator implements GenerateReceiptForPaymentPo
         // Build PDF path (same format as GenerateReceiptsForMonth)
         $pdfPath = sprintf(dirname(__DIR__, 3) . '/var/receipts/receipt-%s-tenant-%d.pdf', $month->toString(), $tenantId);
 
-        // Calculate period bounds
+        // Calculate period bounds (can be overridden by caller for partial months)
         $startDate = new DateTimeImmutable(sprintf('%04d-%02d-01', $month->year(), $month->month()));
         $endDate = $startDate->modify('last day of this month');
+
+        $startOverride = $options['period_start'] ?? null;
+        $endOverride   = $options['period_end'] ?? null;
+
+        $periodStartDisplay = $startOverride
+            ? (new DateTimeImmutable($startOverride))->format('d/m/Y')
+            : $startDate->format('d/m/Y');
+        $periodEndDisplay = $endOverride
+            ? (new DateTimeImmutable($endOverride))->format('d/m/Y')
+            : $endDate->format('d/m/Y');
 
         $rentCents = (int) $paymentData['rent_amount'];
         $chargesCents = (int) $paymentData['charges_amount'];
@@ -74,9 +84,9 @@ final class SinglePaymentReceiptGenerator implements GenerateReceiptForPaymentPo
         $vars = [
             'receipt_number' => sprintf('QL-%s-%06d', $month->toString(), $paymentId),
             'period_machine' => $month->toString(),
-            'period_label' => $month->toString(),
-            'period_start' => $startDate->format('d/m/Y'),
-            'period_end' => $endDate->format('d/m/Y'),
+            'period_label' => $periodStartDisplay . ' au ' . $periodEndDisplay,
+            'period_start' => $periodStartDisplay,
+            'period_end' => $periodEndDisplay,
             'issued_at' => date('d/m/Y'),
             'issued_city' => $this->landlordIssueCity,
             'paid_at' => (string) $paymentData['paid_at'],

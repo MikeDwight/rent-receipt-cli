@@ -50,14 +50,24 @@ final class ReceiptController extends AbstractController
     public function process(Request $request, Response $response): Response
     {
         $body = (array) $request->getParsedBody();
-        $tenantId   = (int) ($body['tenant_id'] ?? 0);
-        $propertyId = (int) ($body['property_id'] ?? 0);
-        $period     = (string) ($body['period'] ?? '');
-        $paidAt     = (string) ($body['paid_at'] ?? '');
+        $tenantId    = (int) ($body['tenant_id'] ?? 0);
+        $propertyId  = (int) ($body['property_id'] ?? 0);
+        $periodStart = (string) ($body['period_start'] ?? '');
+        $periodEnd   = (string) ($body['period_end'] ?? '');
+        $paidAt      = (string) ($body['paid_at'] ?? '');
+
+        // Derive YYYY-MM period from start date
+        $period = $periodStart !== '' ? substr($periodStart, 0, 7) : '';
 
         $options = [];
         if ($period !== '') {
             $options['period'] = $period;
+        }
+        if ($periodStart !== '') {
+            $options['period_start'] = $periodStart;
+        }
+        if ($periodEnd !== '') {
+            $options['period_end'] = $periodEnd;
         }
         if ($paidAt !== '') {
             try {

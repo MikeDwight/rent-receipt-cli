@@ -74,7 +74,10 @@ final class ProcessReceiptForPayment
         $pdfPath = null;
 
         if ($paymentId !== null) {
-            $genResult = $this->generateReceipt->generate($paymentId, $period, false);
+            $genResult = $this->generateReceipt->generate($paymentId, $period, false, [
+                'period_start' => $options['period_start'] ?? null,
+                'period_end'   => $options['period_end'] ?? null,
+            ]);
             $receiptAction = $genResult['action'] ?? 'skipped';
             $receiptId = $genResult['receipt_id'] ?? null;
             $pdfPath = $genResult['pdf_path'] ?? null;
