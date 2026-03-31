@@ -1,0 +1,39 @@
+{% extends 'layout.html.twig' %}
+{% set activeMenu = 'tenants' %}
+{% block title %}Locataires{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Locataires</h2>
+    <a href="/tenants/new" class="btn btn-primary btn-sm">+ Nouveau</a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr><th>#</th><th>Nom</th><th>Email</th><th>Adresse</th><th></th></tr>
+            </thead>
+            <tbody>
+            {% for t in tenants %}
+                <tr>
+                    <td class="text-muted">{{ t.id }}</td>
+                    <td>{{ t.full_name }}</td>
+                    <td>{{ t.email }}</td>
+                    <td>{{ t.address }}</td>
+                    <td class="text-end">
+                        <a href="/tenants/{{ t.id }}/edit" class="btn btn-sm btn-outline-secondary">Modifier</a>
+                        <form method="post" action="/tenants/{{ t.id }}/delete" class="d-inline"
+                              onsubmit="return confirm('Supprimer ce locataire ?')">
+                            <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5" class="text-muted text-center py-3">Aucun locataire.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

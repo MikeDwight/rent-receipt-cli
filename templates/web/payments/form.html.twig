@@ -1,0 +1,61 @@
+{% extends 'layout.html.twig' %}
+{% set activeMenu = 'payments' %}
+{% block title %}{{ payment ? 'Modifier paiement' : 'Nouveau paiement' }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+    <a href="/payments" class="btn btn-sm btn-outline-secondary">← Retour</a>
+    <h2 class="mb-0">{{ payment ? 'Modifier paiement' : 'Nouveau paiement' }}</h2>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width:600px">
+    <div class="card-body">
+        <form method="post" action="{{ payment ? '/payments/' ~ payment.id : '/payments' }}">
+            <div class="row g-3 mb-3">
+                <div class="col">
+                    <label class="form-label">Locataire <span class="text-danger">*</span></label>
+                    <select name="tenant_id" class="form-select" required>
+                        <option value="">-- choisir --</option>
+                        {% for t in tenants %}
+                            <option value="{{ t.id }}" {{ (payment.tenant_id ?? '') == t.id ? 'selected' : '' }}>{{ t.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <label class="form-label">Bien <span class="text-danger">*</span></label>
+                    <select name="property_id" class="form-select" required>
+                        <option value="">-- choisir --</option>
+                        {% for p in properties %}
+                            <option value="{{ p.id }}" {{ (payment.property_id ?? preselectedProperty.id ?? '') == p.id ? 'selected' : '' }}>{{ p.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Période (YYYY-MM) <span class="text-danger">*</span></label>
+                <input type="text" name="period" class="form-control" value="{{ payment.period ?? currentMonth }}"
+                       pattern="\d{4}-\d{2}" placeholder="2026-03" required>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col">
+                    <label class="form-label">Loyer (€) <span class="text-danger">*</span></label>
+                    <input type="number" step="0.01" name="rent_amount" class="form-control"
+                           value="{{ payment ? (payment.rent_amount / 100)|number_format(2, '.', '') : (preselectedProperty ? (preselectedProperty.rent_amount / 100)|number_format(2, '.', '') : '') }}"
+                           required>
+                </div>
+                <div class="col">
+                    <label class="form-label">Charges (€)</label>
+                    <input type="number" step="0.01" name="charges_amount" class="form-control"
+                           value="{{ payment ? (payment.charges_amount / 100)|number_format(2, '.', '') : (preselectedProperty ? (preselectedProperty.charges_amount / 100)|number_format(2, '.', '') : '0.00') }}">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Payé le <span class="text-danger">*</span></label>
+                <input type="date" name="paid_at" class="form-control"
+                       value="{{ payment.paid_at ?? "now"|date("Y-m-d") }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

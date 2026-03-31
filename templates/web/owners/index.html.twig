@@ -1,0 +1,39 @@
+{% extends 'layout.html.twig' %}
+{% set activeMenu = 'owners' %}
+{% block title %}Bailleurs{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Bailleurs</h2>
+    <a href="/owners/new" class="btn btn-primary btn-sm">+ Nouveau</a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr><th>#</th><th>Nom</th><th>Email</th><th>Adresse</th><th></th></tr>
+            </thead>
+            <tbody>
+            {% for o in owners %}
+                <tr>
+                    <td class="text-muted">{{ o.id }}</td>
+                    <td>{{ o.full_name }}</td>
+                    <td>{{ o.email }}</td>
+                    <td>{{ o.address }}</td>
+                    <td class="text-end">
+                        <a href="/owners/{{ o.id }}/edit" class="btn btn-sm btn-outline-secondary">Modifier</a>
+                        <form method="post" action="/owners/{{ o.id }}/delete" class="d-inline"
+                              onsubmit="return confirm('Supprimer ce bailleur ?')">
+                            <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5" class="text-muted text-center py-3">Aucun bailleur.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

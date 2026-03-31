@@ -1,0 +1,47 @@
+{% extends 'layout.html.twig' %}
+{% set activeMenu = 'properties' %}
+{% block title %}{{ property ? 'Modifier bien' : 'Nouveau bien' }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+    <a href="/properties" class="btn btn-sm btn-outline-secondary">← Retour</a>
+    <h2 class="mb-0">{{ property ? 'Modifier bien' : 'Nouveau bien' }}</h2>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width:600px">
+    <div class="card-body">
+        <form method="post" action="{{ property ? '/properties/' ~ property.id : '/properties' }}">
+            <div class="mb-3">
+                <label class="form-label">Bailleur <span class="text-danger">*</span></label>
+                <select name="owner_id" class="form-select" required>
+                    <option value="">-- choisir --</option>
+                    {% for o in owners %}
+                        <option value="{{ o.id }}" {{ (property.owner_id ?? '') == o.id ? 'selected' : '' }}>{{ o.full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Libellé <span class="text-danger">*</span></label>
+                <input type="text" name="label" class="form-control" value="{{ property.label ?? '' }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Adresse <span class="text-danger">*</span></label>
+                <input type="text" name="address" class="form-control" value="{{ property.address ?? '' }}" required>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col">
+                    <label class="form-label">Loyer (€) <span class="text-danger">*</span></label>
+                    <input type="number" step="0.01" name="rent_amount" class="form-control"
+                           value="{{ property ? (property.rent_amount / 100)|number_format(2, '.', '') : '' }}" required>
+                </div>
+                <div class="col">
+                    <label class="form-label">Charges (€)</label>
+                    <input type="number" step="0.01" name="charges_amount" class="form-control"
+                           value="{{ property ? (property.charges_amount / 100)|number_format(2, '.', '') : '0.00' }}">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
