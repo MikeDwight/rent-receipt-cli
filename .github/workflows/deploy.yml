@@ -26,9 +26,12 @@ jobs:
 
             composer install --no-dev --optimize-autoloader
 
-            sudo -u www-data php bin/rent-receipt db:migrate
-
             php bin/rent-receipt list --raw > /dev/null
 
             echo "DEPLOY OK"
           EOF
+
+      - name: Migrate
+        run: |
+          ssh -tt ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
+            "cd /opt/rent-receipt-cli && sudo -u www-data php bin/rent-receipt db:migrate"
