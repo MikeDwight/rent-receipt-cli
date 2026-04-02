@@ -135,7 +135,12 @@ final class PaymentController extends AbstractController
 
     public function destroy(Request $request, Response $response, array $args): Response
     {
-        $this->payments->delete((int) $args['id']);
+        $id = (int) $args['id'];
+        if ($this->receipts->findByRentPaymentId($id) !== null) {
+            $this->flash('error', 'Impossible de supprimer ce paiement : une quittance a déjà été générée.');
+            return $this->redirect($response, '/payments');
+        }
+        $this->payments->delete($id);
         $this->flash('success', 'Paiement supprimé.');
         return $this->redirect($response, '/payments');
     }
