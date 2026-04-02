@@ -4,35 +4,40 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">Suivi des quittances</h2>
+    <h2 class="mb-0 fs-4">Quittances</h2>
     <form method="get" action="/receipts" class="d-flex gap-2">
-        <input type="text" name="month" class="form-control form-control-sm" value="{{ month }}" placeholder="YYYY-MM" style="width:120px">
+        <input type="text" name="month" class="form-control form-control-sm" value="{{ month }}" placeholder="YYYY-MM" style="width:110px">
         <button type="submit" class="btn btn-sm btn-outline-secondary">Go</button>
     </form>
 </div>
 
 <div class="card border-0 shadow-sm">
-    <div class="card-body p-0">
+    <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead class="table-light">
-                <tr><th>#</th><th>Période</th><th>Locataire</th><th>Email envoyé</th><th>Archivé</th><th></th></tr>
+                <tr>
+                    <th>Période</th>
+                    <th>Locataire</th>
+                    <th>Email</th>
+                    <th class="d-none d-md-table-cell">Archivé</th>
+                    <th></th>
+                </tr>
             </thead>
             <tbody>
             {% for r in receipts %}
                 <tr>
-                    <td class="text-muted">{{ r.id }}</td>
                     <td>{{ r.period ?? '—' }}</td>
                     <td>{{ r.tenant_name ?? '—' }}</td>
                     <td>
                         {% if r.sent_at %}
-                            <span class="badge bg-success">✓ {{ r.sent_at|slice(0,10) }}</span>
+                            <span class="badge bg-success">✓ <span class="d-none d-md-inline">{{ r.sent_at|slice(0,10) }}</span></span>
                         {% elseif r.send_error %}
                             <span class="badge bg-danger" title="{{ r.send_error }}">Erreur</span>
                         {% else %}
                             <span class="badge bg-secondary">—</span>
                         {% endif %}
                     </td>
-                    <td>
+                    <td class="d-none d-md-table-cell">
                         {% if r.archived_at %}
                             <span class="badge bg-success">✓ {{ r.archived_at|slice(0,10) }}</span>
                         {% elseif r.archive_error %}
@@ -42,21 +47,33 @@
                         {% endif %}
                     </td>
                     <td class="text-end">
-                        <a href="/receipts/{{ r.id }}/download" class="btn btn-sm btn-outline-secondary">Télécharger</a>
-                        {% if not r.sent_at %}
-                            <form method="post" action="/receipts/{{ r.id }}/send" class="d-inline"
-                                  onsubmit="return confirm('Envoyer la quittance par email au locataire ?')">
-                                <button class="btn btn-sm btn-primary">Envoyer</button>
-                            </form>
-                        {% endif %}
-                        <form method="post" action="/receipts/{{ r.id }}/delete" class="d-inline"
-                              onsubmit="return confirm('Supprimer cette quittance et son PDF ?')">
-                            <button class="btn btn-sm btn-outline-danger">Supprimer</button>
-                        </form>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                Actions
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="/receipts/{{ r.id }}/download">Télécharger</a></li>
+                                {% if not r.sent_at %}
+                                    <li>
+                                        <form method="post" action="/receipts/{{ r.id }}/send"
+                                              onsubmit="return confirm('Envoyer la quittance par email au locataire ?')">
+                                            <button class="dropdown-item text-primary">Envoyer par email</button>
+                                        </form>
+                                    </li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="/receipts/{{ r.id }}/delete"
+                                          onsubmit="return confirm('Supprimer cette quittance et son PDF ?')">
+                                        <button class="dropdown-item text-danger">Supprimer</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     </td>
                 </tr>
             {% else %}
-                <tr><td colspan="6" class="text-muted text-center py-3">Aucune quittance pour {{ month }}.</td></tr>
+                <tr><td colspan="5" class="text-muted text-center py-3">Aucune quittance pour {{ month }}.</td></tr>
             {% endfor %}
             </tbody>
         </table>
