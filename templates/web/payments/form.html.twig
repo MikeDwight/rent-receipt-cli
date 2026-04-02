@@ -23,7 +23,7 @@
                 </div>
                 <div class="col">
                     <label class="form-label">Bien <span class="text-danger">*</span></label>
-                    <select name="property_id" class="form-select" required>
+                    <select id="property_id" name="property_id" class="form-select" required>
                         <option value="">-- choisir --</option>
                         {% for p in properties %}
                             <option value="{{ p.id }}" {{ (payment.property_id ?? preselectedProperty.id ?? '') == p.id ? 'selected' : '' }}>{{ p.label }}</option>
@@ -51,13 +51,13 @@
             <div class="row g-3 mb-3">
                 <div class="col">
                     <label class="form-label">Loyer (€) <span class="text-danger">*</span></label>
-                    <input type="number" step="0.01" name="rent_amount" class="form-control"
+                    <input type="number" step="0.01" id="rent_amount" name="rent_amount" class="form-control"
                            value="{{ payment ? (payment.rent_amount / 100)|number_format(2, '.', '') : (preselectedProperty ? (preselectedProperty.rent_amount / 100)|number_format(2, '.', '') : '') }}"
                            required>
                 </div>
                 <div class="col">
                     <label class="form-label">Charges (€)</label>
-                    <input type="number" step="0.01" name="charges_amount" class="form-control"
+                    <input type="number" step="0.01" id="charges_amount" name="charges_amount" class="form-control"
                            value="{{ payment ? (payment.charges_amount / 100)|number_format(2, '.', '') : (preselectedProperty ? (preselectedProperty.charges_amount / 100)|number_format(2, '.', '') : '0.00') }}">
                 </div>
             </div>
@@ -75,6 +75,35 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+const PROPERTIES = {
+    {% for p in properties %}
+    {{ p.id }}: { rent: {{ (p.rent_amount / 100)|number_format(2, '.', '') }}, charges: {{ (p.charges_amount / 100)|number_format(2, '.', '') }} },
+    {% endfor %}
+};
+
+const propertySelect  = document.getElementById('property_id');
+const rentInput       = document.getElementById('rent_amount');
+const chargesInput    = document.getElementById('charges_amount');
+const isNewPayment    = {{ payment is null ? 'true' : 'false' }};
+
+function fillAmountsFromProperty(id) {
+    if (!isNewPayment || !id || !PROPERTIES[id]) return;
+    rentInput.value    = PROPERTIES[id].rent.toFixed(2);
+    chargesInput.value = PROPERTIES[id].charges.toFixed(2);
+}
+
+propertySelect.addEventListener('change', () => fillAmountsFromProperty(propertySelect.value));
+
+// Auto-select if only one property
+if (isNewPayment && Object.keys(PROPERTIES).length === 1) {
+    const onlyId = Object.keys(PROPERTIES)[0];
+    if (!propertySelect.value) {
+        propertySelect.value = onlyId;
+    }
+    fillAmountsFromProperty(propertySelect.value);
+}
+</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
