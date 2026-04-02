@@ -9,47 +9,41 @@
 </div>
 
 <div class="card border-0 shadow-sm">
-    <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Libellé</th>
-                    <th>Loyer</th>
-                    <th class="d-none d-md-table-cell">Charges</th>
-                    <th class="d-none d-md-table-cell">Adresse</th>
-                    <th class="d-none d-md-table-cell">Bailleur</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for p in properties %}
-                <tr>
-                    <td>{{ p.label }}</td>
-                    <td>{{ (p.rent_amount / 100)|number_format(2, ',', ' ') }} €</td>
-                    <td class="d-none d-md-table-cell">{{ (p.charges_amount / 100)|number_format(2, ',', ' ') }} €</td>
-                    <td class="d-none d-md-table-cell">{{ p.address }}</td>
-                    <td class="d-none d-md-table-cell">{{ owners[p.owner_id].full_name ?? '—' }}</td>
-                    <td class="text-end">
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">Actions</button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="/properties/{{ p.id }}/edit">Modifier</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form method="post" action="/properties/{{ p.id }}/delete"
-                                          onsubmit="return confirm('Supprimer ce bien ?')">
-                                        <button class="dropdown-item text-danger">Supprimer</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                    </td>
-                </tr>
-            {% else %}
-                <tr><td colspan="6" class="text-muted text-center py-3">Aucun bien.</td></tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    <table class="table table-hover mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Libellé</th>
+                <th>Loyer</th>
+                <th class="d-none d-md-table-cell">Charges</th>
+                <th class="d-none d-md-table-cell">Adresse</th>
+                <th class="d-none d-md-table-cell">Bailleur</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in properties %}
+            <tr>
+                <td>{{ p.label }}</td>
+                <td>{{ (p.rent_amount / 100)|number_format(2, ',', ' ') }} €</td>
+                <td class="d-none d-md-table-cell">{{ (p.charges_amount / 100)|number_format(2, ',', ' ') }} €</td>
+                <td class="d-none d-md-table-cell">{{ p.address }}</td>
+                <td class="d-none d-md-table-cell">{{ owners[p.owner_id].full_name ?? '—' }}</td>
+                <td class="text-end" style="white-space:nowrap">
+                    <a href="/properties/{{ p.id }}/edit" class="btn btn-sm btn-outline-secondary" title="Modifier">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="post" action="/properties/{{ p.id }}/delete" class="d-inline"
+                          onsubmit="return confirm('Supprimer ce bien ?')">
+                        <button class="btn btn-sm btn-outline-danger" title="Supprimer">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="6" class="text-muted text-center py-3">Aucun bien.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

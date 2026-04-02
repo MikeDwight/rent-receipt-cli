@@ -9,43 +9,37 @@
 </div>
 
 <div class="card border-0 shadow-sm">
-    <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Nom</th>
-                    <th class="d-none d-md-table-cell">Email</th>
-                    <th class="d-none d-md-table-cell">Adresse</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for o in owners %}
-                <tr>
-                    <td>{{ o.full_name }}</td>
-                    <td class="d-none d-md-table-cell">{{ o.email }}</td>
-                    <td class="d-none d-md-table-cell">{{ o.address }}</td>
-                    <td class="text-end">
-                        <div class="dropdown">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">Actions</button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="/owners/{{ o.id }}/edit">Modifier</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form method="post" action="/owners/{{ o.id }}/delete"
-                                          onsubmit="return confirm('Supprimer ce bailleur ?')">
-                                        <button class="dropdown-item text-danger">Supprimer</button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-                    </td>
-                </tr>
-            {% else %}
-                <tr><td colspan="4" class="text-muted text-center py-3">Aucun bailleur.</td></tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    <table class="table table-hover mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Nom</th>
+                <th class="d-none d-md-table-cell">Email</th>
+                <th class="d-none d-md-table-cell">Adresse</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for o in owners %}
+            <tr>
+                <td>{{ o.full_name }}</td>
+                <td class="d-none d-md-table-cell">{{ o.email }}</td>
+                <td class="d-none d-md-table-cell">{{ o.address }}</td>
+                <td class="text-end" style="white-space:nowrap">
+                    <a href="/owners/{{ o.id }}/edit" class="btn btn-sm btn-outline-secondary" title="Modifier">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="post" action="/owners/{{ o.id }}/delete" class="d-inline"
+                          onsubmit="return confirm('Supprimer ce bailleur ?')">
+                        <button class="btn btn-sm btn-outline-danger" title="Supprimer">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="4" class="text-muted text-center py-3">Aucun bailleur.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}
