@@ -86,12 +86,12 @@ final class ReceiptController extends AbstractController
         return $this->redirect($response, '/receipts?month=' . urlencode($month));
     }
 
-    public function downloadForPayment(Request $request, Response $response, array $args): Response
+    public function download(Request $request, Response $response, array $args): Response
     {
-        $receipt = $this->receipts->findByRentPaymentId((int) $args['id']);
+        $receipt = $this->receipts->findOneDetailed((int) $args['id']);
         if ($receipt === null || !file_exists($receipt['pdf_path'])) {
             $this->flash('error', 'Quittance introuvable.');
-            return $this->redirect($response, '/payments');
+            return $this->redirect($response, '/receipts');
         }
 
         $filename = basename($receipt['pdf_path']);

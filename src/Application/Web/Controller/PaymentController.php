@@ -43,20 +43,11 @@ final class PaymentController extends AbstractController
         $tenants = array_column($this->tenants->listAll(), null, 'id');
         $properties = array_column($this->properties->listAll(), null, 'id');
 
-        $receiptsByPaymentId = [];
-        foreach ($payments as $p) {
-            $receipt = $this->receipts->findByRentPaymentId($p['id']);
-            if ($receipt !== null) {
-                $receiptsByPaymentId[$p['id']] = $receipt;
-            }
-        }
-
         return $this->render($response, 'payments/index.html.twig', [
-            'payments'            => $payments,
-            'tenants'             => $tenants,
-            'properties'          => $properties,
-            'receiptsByPaymentId' => $receiptsByPaymentId,
-            'filter'              => ['period' => $monthStr ?? ''],
+            'payments'   => $payments,
+            'tenants'    => $tenants,
+            'properties' => $properties,
+            'filter'     => ['period' => $monthStr ?? ''],
         ]);
     }
 
