@@ -31,15 +31,23 @@
                     </select>
                 </div>
             </div>
+
             <div class="mb-3">
                 <label class="form-label">Période <span class="text-danger">*</span></label>
-                <div class="d-flex gap-2 mb-1">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="fillPeriod(0)">M (en cours)</button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="fillPeriod(1)">M+1</button>
+                <div class="d-flex gap-2 mb-2">
+                    <button type="button" id="btn-m" class="btn btn-sm btn-outline-secondary" onclick="fillMonth(0)"></button>
+                    <button type="button" id="btn-m1" class="btn btn-sm btn-outline-secondary" onclick="fillMonth(1)"></button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openRangePicker()" title="Choisir une période personnalisée">📅</button>
                 </div>
-                <input type="text" id="period" name="period" class="form-control" value="{{ payment.period ?? currentMonth }}"
-                       pattern="\d{4}-\d{2}" placeholder="YYYY-MM" required>
+                <input type="hidden" id="period_start" name="period_start" value="">
+                <input type="hidden" id="period_end" name="period_end" value="">
+                <div class="input-group">
+                    <input type="text" id="period" name="period" class="form-control" value="{{ payment.period ?? currentMonth }}"
+                           pattern="\d{4}-\d{2}" placeholder="YYYY-MM" required>
+                    <span id="period-range-label" class="input-group-text text-muted small" style="display:none"></span>
+                </div>
             </div>
+
             <div class="row g-3 mb-3">
                 <div class="col">
                     <label class="form-label">Loyer (€) <span class="text-danger">*</span></label>
@@ -62,15 +70,59 @@
         </form>
     </div>
 </div>
+
+<input type="text" id="range-picker-input" style="position:absolute;opacity:0;pointer-events:none">
 {% endblock %}
 
 {% block scripts %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
 <script>
-function fillPeriod(offset) {
+const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+function monthLabel(offset) {
+    const d = new Date();
+    return MONTHS_FR[(d.getMonth() + offset + 12) % 12];
+}
+
+function fillMonth(offset) {
     const now = new Date();
     const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-    document.getElementById('period').value =
-        d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    const ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    document.getElementById('period').value = ym;
+    document.getElementById('period_start').value = '';
+    document.getElementById('period_end').value = '';
+    document.getElementById('period-range-label').style.display = 'none';
+}
+
+// Init button labels
+document.getElementById('btn-m').textContent = monthLabel(0);
+document.getElementById('btn-m1').textContent = monthLabel(1);
+
+// Flatpickr range picker
+const rangePicker = flatpickr('#range-picker-input', {
+    mode: 'range',
+    locale: 'fr',
+    dateFormat: 'Y-m-d',
+    onChange: function(dates) {
+        if (dates.length === 2) {
+            const fmt = d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+            const labelFmt = d => String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+            const ym = dates[0].getFullYear() + '-' + String(dates[0].getMonth()+1).padStart(2,'0');
+            document.getElementById('period').value = ym;
+            document.getElementById('period_start').value = fmt(dates[0]);
+            document.getElementById('period_end').value = fmt(dates[1]);
+            const label = document.getElementById('period-range-label');
+            label.textContent = labelFmt(dates[0]) + ' → ' + labelFmt(dates[1]);
+            label.style.display = '';
+            rangePicker.close();
+        }
+    }
+});
+
+function openRangePicker() {
+    rangePicker.open();
 }
 </script>
 {% endblock %}
