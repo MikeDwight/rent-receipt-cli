@@ -70,7 +70,7 @@ final class WebKernel
         $tenantCtrl   = new TenantController($twig, $tenantRepo);
         $propertyCtrl = new PropertyController($twig, $propertyRepo, $ownerRepo);
         $paymentCtrl  = new PaymentController($twig, $paymentRepo, $tenantRepo, $propertyRepo);
-        $receiptCtrl  = new ReceiptController($twig, $receiptRepo, $tenantRepo, $propertyRepo, $processUseCase);
+        $receiptCtrl  = new ReceiptController($twig, $receiptRepo, $paymentRepo, $tenantRepo, $propertyRepo, $processUseCase);
 
         $app = AppFactory::create();
         $app->add(TwigMiddleware::create($app, $twig));
@@ -124,6 +124,7 @@ final class WebKernel
             // Receipts
             $group->get('/receipts', [$receiptCtrl, 'index']);
             $group->post('/receipts/process', [$receiptCtrl, 'process']);
+            $group->post('/payments/{id}/process-receipt', [$receiptCtrl, 'processFromPayment']);
         })->add(new AuthMiddleware());
 
         return $app;
