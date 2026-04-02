@@ -8,8 +8,6 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use RentReceiptCli\Application\Port\ReceiptRepository;
 use RentReceiptCli\Application\Port\RentPaymentRepository;
-use RentReceiptCli\Application\Port\TenantRepository;
-use RentReceiptCli\Application\Port\PropertyRepository;
 use RentReceiptCli\Application\UseCase\ProcessReceiptForPayment;
 use RentReceiptCli\Core\Domain\ValueObject\Month;
 use Slim\Views\Twig;
@@ -20,8 +18,6 @@ final class ReceiptController extends AbstractController
         Twig $twig,
         private readonly ReceiptRepository $receipts,
         private readonly RentPaymentRepository $payments,
-        private readonly TenantRepository $tenants,
-        private readonly PropertyRepository $properties,
         private readonly ProcessReceiptForPayment $processUseCase,
     ) {
         parent::__construct($twig);
@@ -42,61 +38,9 @@ final class ReceiptController extends AbstractController
         $receipts = $this->receipts->findByMonth($month);
 
         return $this->render($response, 'receipts/index.html.twig', [
-            'receipts'   => $receipts,
-            'month'      => $monthStr,
-            'tenants'    => $this->tenants->listAll(),
-            'properties' => $this->properties->listAll(),
+            'receipts' => $receipts,
+            'month'    => $monthStr,
         ]);
-    }
-
-    public function process(Request $request, Response $response): Response
-    {
-        $body = (array) $request->getParsedBody();
-        $tenantId    = (int) ($body['tenant_id'] ?? 0);
-        $propertyId  = (int) ($body['property_id'] ?? 0);
-        $periodStart = (string) ($body['period_start'] ?? '');
-        $periodEnd   = (string) ($body['period_end'] ?? '');
-        $paidAt      = (string) ($body['paid_at'] ?? '');
-
-        // Derive YYYY-MM period from start date
-        $period = $periodStart !== '' ? substr($periodStart, 0, 7) : '';
-
-        $options = [];
-        if ($period !== '') {
-            $options['period'] = $period;
-        }
-        if ($periodStart !== '') {
-            $options['period_start'] = $periodStart;
-        }
-        if ($periodEnd !== '') {
-            $options['period_end'] = $periodEnd;
-        }
-        if ($paidAt !== '') {
-            try {
-                $options['paid_at'] = new \DateTimeImmutable($paidAt);
-            } catch (\Throwable) {}
-        }
-
-        try {
-            $result = $this->processUseCase->execute($tenantId, $propertyId, $options);
-
-            $parts = [];
-            $parts[] = 'Paiement : ' . $result->payment['action'];
-            $parts[] = 'Quittance : ' . $result->receipt['action'];
-            $parts[] = 'Email : ' . $result->email['action'];
-            $parts[] = 'Archive : ' . $result->archive['action'];
-
-            if (!empty($result->errors)) {
-                $this->flash('error', implode(' | ', $result->errors));
-            } else {
-                $this->flash('success', implode(' | ', $parts));
-            }
-        } catch (\Throwable $e) {
-            $this->flash('error', 'Erreur : ' . $e->getMessage());
-        }
-
-        $month = $period !== '' ? $period : Month::current()->toString();
-        return $this->redirect($response, '/receipts?month=' . urlencode($month));
     }
 
     public function downloadForPayment(Request $request, Response $response, array $args): Response
