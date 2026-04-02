@@ -32,9 +32,13 @@
                 </div>
             </div>
             <div class="mb-3">
-                <label class="form-label">Période (YYYY-MM) <span class="text-danger">*</span></label>
-                <input type="text" name="period" class="form-control" value="{{ payment.period ?? currentMonth }}"
-                       pattern="\d{4}-\d{2}" placeholder="2026-03" required>
+                <label class="form-label">Période <span class="text-danger">*</span></label>
+                <div class="d-flex gap-2 mb-1">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="fillPeriod(0)">M (en cours)</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="fillPeriod(1)">M+1</button>
+                </div>
+                <input type="text" id="period" name="period" class="form-control" value="{{ payment.period ?? currentMonth }}"
+                       pattern="\d{4}-\d{2}" placeholder="YYYY-MM" required>
             </div>
             <div class="row g-3 mb-3">
                 <div class="col">
@@ -58,4 +62,15 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function fillPeriod(offset) {
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    document.getElementById('period').value =
+        d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+</script>
 {% endblock %}
