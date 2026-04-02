@@ -56,6 +56,8 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
             tenant_id,
             property_id,
             period,
+            period_start,
+            period_end,
             rent_amount,
             charges_amount,
             paid_at,
@@ -122,6 +124,8 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
             tenant_id,
             property_id,
             period,
+            period_start,
+            period_end,
             rent_amount,
             charges_amount,
             paid_at,
@@ -154,13 +158,17 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
         Month $period,
         int $rentAmount,
         int $chargesAmount,
-        \DateTimeImmutable $paidAt
+        \DateTimeImmutable $paidAt,
+        ?string $periodStart = null,
+        ?string $periodEnd = null,
     ): int {
         $stmt = $this->pdo->prepare(
             "INSERT INTO rent_payments (
                 tenant_id,
                 property_id,
                 period,
+                period_start,
+                period_end,
                 rent_amount,
                 charges_amount,
                 paid_at,
@@ -169,6 +177,8 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
                 :tenant_id,
                 :property_id,
                 :period,
+                :period_start,
+                :period_end,
                 :rent_amount,
                 :charges_amount,
                 :paid_at,
@@ -177,12 +187,14 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
         );
 
         $stmt->execute([
-            ':tenant_id' => $tenantId,
-            ':property_id' => $propertyId,
-            ':period' => $period->toString(),
-            ':rent_amount' => $rentAmount,
+            ':tenant_id'    => $tenantId,
+            ':property_id'  => $propertyId,
+            ':period'       => $period->toString(),
+            ':period_start' => $periodStart,
+            ':period_end'   => $periodEnd,
+            ':rent_amount'  => $rentAmount,
             ':charges_amount' => $chargesAmount,
-            ':paid_at' => $paidAt->format('Y-m-d'),
+            ':paid_at'      => $paidAt->format('Y-m-d'),
         ]);
 
         return (int) $this->pdo->lastInsertId();
@@ -195,13 +207,17 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
         Month $period,
         int $rentAmount,
         int $chargesAmount,
-        \DateTimeImmutable $paidAt
+        \DateTimeImmutable $paidAt,
+        ?string $periodStart = null,
+        ?string $periodEnd = null,
     ): void {
         $stmt = $this->pdo->prepare(
             "UPDATE rent_payments
              SET tenant_id = :tenant_id,
                  property_id = :property_id,
                  period = :period,
+                 period_start = :period_start,
+                 period_end = :period_end,
                  rent_amount = :rent_amount,
                  charges_amount = :charges_amount,
                  paid_at = :paid_at
@@ -209,13 +225,15 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
         );
 
         $stmt->execute([
-            ':id' => $id,
-            ':tenant_id' => $tenantId,
-            ':property_id' => $propertyId,
-            ':period' => $period->toString(),
-            ':rent_amount' => $rentAmount,
+            ':id'           => $id,
+            ':tenant_id'    => $tenantId,
+            ':property_id'  => $propertyId,
+            ':period'       => $period->toString(),
+            ':period_start' => $periodStart,
+            ':period_end'   => $periodEnd,
+            ':rent_amount'  => $rentAmount,
             ':charges_amount' => $chargesAmount,
-            ':paid_at' => $paidAt->format('Y-m-d'),
+            ':paid_at'      => $paidAt->format('Y-m-d'),
         ]);
     }
 

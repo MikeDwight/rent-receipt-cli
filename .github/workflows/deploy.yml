@@ -26,6 +26,8 @@ jobs:
 
             composer install --no-dev --optimize-autoloader
 
+            php bin/rent-receipt db:migrate
+
             php bin/rent-receipt list --raw > /dev/null
 
             echo "DEPLOY OK"

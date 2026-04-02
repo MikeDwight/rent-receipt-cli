@@ -82,6 +82,8 @@ final class PaymentController extends AbstractController
         $body = (array) $request->getParsedBody();
         try {
             $period = Month::fromString((string) ($body['period'] ?? ''));
+            $periodStart = ($body['period_start'] ?? '') !== '' ? (string) $body['period_start'] : null;
+            $periodEnd   = ($body['period_end']   ?? '') !== '' ? (string) $body['period_end']   : null;
             $this->payments->create(
                 (int) ($body['tenant_id'] ?? 0),
                 (int) ($body['property_id'] ?? 0),
@@ -89,6 +91,8 @@ final class PaymentController extends AbstractController
                 (int) round((float) ($body['rent_amount'] ?? 0) * 100),
                 (int) round((float) ($body['charges_amount'] ?? 0) * 100),
                 new \DateTimeImmutable((string) ($body['paid_at'] ?? 'today')),
+                $periodStart,
+                $periodEnd,
             );
             $this->flash('success', 'Paiement créé.');
         } catch (\Throwable $e) {
@@ -117,6 +121,8 @@ final class PaymentController extends AbstractController
         $body = (array) $request->getParsedBody();
         try {
             $period = Month::fromString((string) ($body['period'] ?? ''));
+            $periodStart = ($body['period_start'] ?? '') !== '' ? (string) $body['period_start'] : null;
+            $periodEnd   = ($body['period_end']   ?? '') !== '' ? (string) $body['period_end']   : null;
             $this->payments->update(
                 (int) $args['id'],
                 (int) ($body['tenant_id'] ?? 0),
@@ -125,6 +131,8 @@ final class PaymentController extends AbstractController
                 (int) round((float) ($body['rent_amount'] ?? 0) * 100),
                 (int) round((float) ($body['charges_amount'] ?? 0) * 100),
                 new \DateTimeImmutable((string) ($body['paid_at'] ?? 'today')),
+                $periodStart,
+                $periodEnd,
             );
             $this->flash('success', 'Paiement mis à jour.');
         } catch (\Throwable $e) {
