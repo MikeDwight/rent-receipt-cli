@@ -4,33 +4,45 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">Locataires</h2>
+    <h2 class="mb-0 fs-4">Locataires</h2>
     <a href="/tenants/new" class="btn btn-primary btn-sm">+ Nouveau</a>
 </div>
 
 <div class="card border-0 shadow-sm">
-    <div class="card-body p-0">
+    <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead class="table-light">
-                <tr><th>#</th><th>Nom</th><th>Email</th><th>Adresse</th><th></th></tr>
+                <tr>
+                    <th>Nom</th>
+                    <th class="d-none d-md-table-cell">Email</th>
+                    <th class="d-none d-md-table-cell">Adresse</th>
+                    <th></th>
+                </tr>
             </thead>
             <tbody>
             {% for t in tenants %}
                 <tr>
-                    <td class="text-muted">{{ t.id }}</td>
                     <td>{{ t.full_name }}</td>
-                    <td>{{ t.email }}</td>
-                    <td>{{ t.address }}</td>
+                    <td class="d-none d-md-table-cell">{{ t.email }}</td>
+                    <td class="d-none d-md-table-cell">{{ t.address }}</td>
                     <td class="text-end">
-                        <a href="/tenants/{{ t.id }}/edit" class="btn btn-sm btn-outline-secondary">Modifier</a>
-                        <form method="post" action="/tenants/{{ t.id }}/delete" class="d-inline"
-                              onsubmit="return confirm('Supprimer ce locataire ?')">
-                            <button class="btn btn-sm btn-outline-danger">Supprimer</button>
-                        </form>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">Actions</button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="/tenants/{{ t.id }}/edit">Modifier</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="/tenants/{{ t.id }}/delete"
+                                          onsubmit="return confirm('Supprimer ce locataire ?')">
+                                        <button class="dropdown-item text-danger">Supprimer</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
                     </td>
                 </tr>
             {% else %}
-                <tr><td colspan="5" class="text-muted text-center py-3">Aucun locataire.</td></tr>
+                <tr><td colspan="4" class="text-muted text-center py-3">Aucun locataire.</td></tr>
             {% endfor %}
             </tbody>
         </table>
