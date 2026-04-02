@@ -42,6 +42,12 @@
                         {% endif %}
                     </td>
                     <td class="text-end">
+                        {% if not r.sent_at %}
+                            <form method="post" action="/receipts/{{ r.id }}/send" class="d-inline"
+                                  onsubmit="return confirm('Envoyer la quittance par email au locataire ?')">
+                                <button class="btn btn-sm btn-primary">Envoyer</button>
+                            </form>
+                        {% endif %}
                         <form method="post" action="/receipts/{{ r.id }}/delete" class="d-inline"
                               onsubmit="return confirm('Supprimer cette quittance et son PDF ?')">
                             <button class="btn btn-sm btn-outline-danger">Supprimer</button>

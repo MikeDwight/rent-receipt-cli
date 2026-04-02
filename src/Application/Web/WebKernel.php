@@ -70,7 +70,8 @@ final class WebKernel
         $tenantCtrl   = new TenantController($twig, $tenantRepo);
         $propertyCtrl = new PropertyController($twig, $propertyRepo, $ownerRepo);
         $paymentCtrl  = new PaymentController($twig, $paymentRepo, $receiptRepo, $tenantRepo, $propertyRepo);
-        $receiptCtrl  = new ReceiptController($twig, $receiptRepo, $paymentRepo, $processUseCase);
+        $sendPort     = self::buildSendPort($config, $receiptRepo, $logger);
+        $receiptCtrl  = new ReceiptController($twig, $receiptRepo, $paymentRepo, $processUseCase, $sendPort);
 
         $app = AppFactory::create();
         $app->add(TwigMiddleware::create($app, $twig));
@@ -123,6 +124,7 @@ final class WebKernel
 
             // Receipts
             $group->get('/receipts', [$receiptCtrl, 'index']);
+            $group->post('/receipts/{id}/send', [$receiptCtrl, 'sendReceipt']);
             $group->post('/receipts/{id}/delete', [$receiptCtrl, 'destroy']);
             $group->post('/payments/{id}/process-receipt', [$receiptCtrl, 'processFromPayment']);
             $group->get('/payments/{id}/receipt/download', [$receiptCtrl, 'downloadForPayment']);
@@ -175,8 +177,25 @@ final class WebKernel
         }
         $landlordCity = (string) ($config['landlord']['city'] ?? '');
 
-        $local     = new LocalReceiptArchiver($config['paths']['storage_pdf']);
+        $sendPort = self::buildSendPort($config, $receiptRepo, $logger);
+
+        $upsertPort = new SqliteUpsertPaymentForPeriod($rentPaymentRepo, $propertyRepo);
+        $genPort    = new SinglePaymentReceiptGenerator(
+            $rentPaymentRepo, $receiptRepo, $ownerRepo,
+            $htmlBuilder, $pdf, $pdfOptions,
+            $landlordName, $landlordAddress, $landlordCity,
+        );
+
+        return new ProcessReceiptForPayment($upsertPort, $genPort, $sendPort);
+    }
+
+    private static function buildSendPort(
+        array $config,
+        SqliteReceiptRepository $receiptRepo,
+        FileLogger $logger,
+    ): SingleReceiptSenderAndArchiver {
         $ncCfg     = $config['nextcloud'] ?? [];
+        $local     = new LocalReceiptArchiver($config['paths']['storage_pdf']);
         $nextcloud = new NextcloudWebdavArchiver(
             (string) ($ncCfg['base_url'] ?? ''),
             (string) ($ncCfg['username'] ?? ''),
@@ -186,17 +205,9 @@ final class WebKernel
         $archiver = new FallbackArchiver($nextcloud, $local, $logger);
         $sender   = new SmtpReceiptSender($config['smtp']);
 
-        $upsertPort = new SqliteUpsertPaymentForPeriod($rentPaymentRepo, $propertyRepo);
-        $genPort    = new SinglePaymentReceiptGenerator(
-            $rentPaymentRepo, $receiptRepo, $ownerRepo,
-            $htmlBuilder, $pdf, $pdfOptions,
-            $landlordName, $landlordAddress, $landlordCity,
-        );
-        $sendPort = new SingleReceiptSenderAndArchiver(
+        return new SingleReceiptSenderAndArchiver(
             $receiptRepo, $sender, $archiver,
             (string) ($ncCfg['target_dir'] ?? ''),
         );
-
-        return new ProcessReceiptForPayment($upsertPort, $genPort, $sendPort);
     }
 }

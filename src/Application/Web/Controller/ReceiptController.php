@@ -8,6 +8,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use RentReceiptCli\Application\Port\ReceiptRepository;
 use RentReceiptCli\Application\Port\RentPaymentRepository;
+use RentReceiptCli\Application\Port\SendAndArchiveReceiptPort;
 use RentReceiptCli\Application\UseCase\ProcessReceiptForPayment;
 use RentReceiptCli\Core\Domain\ValueObject\Month;
 use Slim\Views\Twig;
@@ -19,6 +20,7 @@ final class ReceiptController extends AbstractController
         private readonly ReceiptRepository $receipts,
         private readonly RentPaymentRepository $payments,
         private readonly ProcessReceiptForPayment $processUseCase,
+        private readonly SendAndArchiveReceiptPort $sendAndArchive,
     ) {
         parent::__construct($twig);
     }
@@ -41,6 +43,34 @@ final class ReceiptController extends AbstractController
             'receipts' => $receipts,
             'month'    => $monthStr,
         ]);
+    }
+
+    public function sendReceipt(Request $request, Response $response, array $args): Response
+    {
+        $receipt = $this->receipts->findOneDetailed((int) $args['id']);
+        if ($receipt === null) {
+            $this->flash('error', 'Quittance introuvable.');
+            return $this->redirect($response, '/receipts');
+        }
+
+        try {
+            $result = $this->sendAndArchive->sendAndArchive(
+                $receipt['id'],
+                $receipt['period'],
+                $receipt['tenant_id'],
+                false,
+                false,
+                false,
+            );
+            $parts = [];
+            $parts[] = 'Email : ' . ($result['email_action'] ?? 'skipped');
+            $parts[] = 'Archive : ' . ($result['archive_action'] ?? 'skipped');
+            $this->flash('success', implode(' | ', $parts));
+        } catch (\Throwable $e) {
+            $this->flash('error', 'Erreur : ' . $e->getMessage());
+        }
+
+        return $this->redirect($response, '/receipts?month=' . urlencode($receipt['period']));
     }
 
     public function destroy(Request $request, Response $response, array $args): Response
@@ -84,10 +114,11 @@ final class ReceiptController extends AbstractController
         $lastDay = (int) (new \DateTimeImmutable("{$year}-{$mon}-01"))->modify('last day of this month')->format('d');
 
         $options = [
-            'period'       => $period,
-            'period_start' => $payment['period_start'] ?? "{$year}-{$mon}-01",
-            'period_end'   => $payment['period_end']   ?? "{$year}-{$mon}-" . str_pad((string) $lastDay, 2, '0', STR_PAD_LEFT),
-            'paid_at'      => new \DateTimeImmutable($payment['paid_at']),
+            'period'        => $period,
+            'period_start'  => $payment['period_start'] ?? "{$year}-{$mon}-01",
+            'period_end'    => $payment['period_end']   ?? "{$year}-{$mon}-" . str_pad((string) $lastDay, 2, '0', STR_PAD_LEFT),
+            'paid_at'       => new \DateTimeImmutable($payment['paid_at']),
+            'generate_only' => true,
         ];
 
         try {

@@ -25,16 +25,17 @@ final class ProcessReceiptForPayment
     ) {}
 
     /**
-     * @param array{period: ?string, paid_at: ?\DateTimeImmutable, dry_run: bool, resend: bool, rearchive: bool} $options
+     * @param array{period: ?string, paid_at: ?\DateTimeImmutable, dry_run: bool, resend: bool, rearchive: bool, generate_only: bool} $options
      */
     public function execute(int $tenantId, int $propertyId, array $options = []): ProcessReceiptForPaymentResult
     {
         $tz = new \DateTimeZone(self::TIMEZONE);
         $period = $options['period'] ?? Month::current($tz)->toString();
         $paidAt = $options['paid_at'] ?? new \DateTimeImmutable('today', $tz);
-        $dryRun = $options['dry_run'] ?? false;
-        $resend = $options['resend'] ?? false;
-        $rearchive = $options['rearchive'] ?? false;
+        $dryRun       = $options['dry_run']       ?? false;
+        $resend       = $options['resend']        ?? false;
+        $rearchive    = $options['rearchive']     ?? false;
+        $generateOnly = $options['generate_only'] ?? false;
 
         $input = [
             'tenant_id' => $tenantId,
@@ -89,7 +90,7 @@ final class ProcessReceiptForPayment
         $archivePath = null;
         $archiveReason = null;
 
-        if ($receiptId !== null) {
+        if ($receiptId !== null && !$generateOnly) {
             $sendResult = $this->sendAndArchive->sendAndArchive(
                 $receiptId,
                 $period,
