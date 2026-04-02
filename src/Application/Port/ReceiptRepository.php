@@ -63,5 +63,7 @@ interface ReceiptRepository
      * }|null
      */
     public function findOneDetailed(int $receiptId): ?array;
+
+    public function delete(int $id): void;
 }
 

@@ -43,6 +43,19 @@ final class ReceiptController extends AbstractController
         ]);
     }
 
+    public function destroy(Request $request, Response $response, array $args): Response
+    {
+        $receipt = $this->receipts->findOneDetailed((int) $args['id']);
+        if ($receipt === null) {
+            $this->flash('error', 'Quittance introuvable.');
+            return $this->redirect($response, '/receipts');
+        }
+        $month = $receipt['period'];
+        $this->receipts->delete($receipt['id']);
+        $this->flash('success', 'Quittance supprimée.');
+        return $this->redirect($response, '/receipts?month=' . urlencode($month));
+    }
+
     public function downloadForPayment(Request $request, Response $response, array $args): Response
     {
         $receipt = $this->receipts->findByRentPaymentId((int) $args['id']);

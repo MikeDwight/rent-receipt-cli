@@ -229,6 +229,24 @@ SQL;
         return $row;
     }
 
+    public function delete(int $id): void
+    {
+        $row = $this->findByReceiptId($id);
+        if ($row !== null && !empty($row['pdf_path']) && file_exists($row['pdf_path'])) {
+            unlink($row['pdf_path']);
+        }
+        $stmt = $this->pdo->prepare('DELETE FROM receipts WHERE id = :id');
+        $stmt->execute(['id' => $id]);
+    }
+
+    private function findByReceiptId(int $id): ?array
+    {
+        $stmt = $this->pdo->prepare('SELECT id, pdf_path FROM receipts WHERE id = :id LIMIT 1');
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
     public function findOneDetailed(int $receiptId): ?array
     {
         $sql = <<<SQL

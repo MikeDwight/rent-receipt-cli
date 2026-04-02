@@ -123,6 +123,7 @@ final class WebKernel
 
             // Receipts
             $group->get('/receipts', [$receiptCtrl, 'index']);
+            $group->post('/receipts/{id}/delete', [$receiptCtrl, 'destroy']);
             $group->post('/payments/{id}/process-receipt', [$receiptCtrl, 'processFromPayment']);
             $group->get('/payments/{id}/receipt/download', [$receiptCtrl, 'downloadForPayment']);
         })->add(new AuthMiddleware());
