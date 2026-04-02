@@ -11,6 +11,7 @@ use RentReceiptCli\Application\Web\Controller\TenantController;
 use RentReceiptCli\Application\Web\Controller\PropertyController;
 use RentReceiptCli\Application\Web\Controller\PaymentController;
 use RentReceiptCli\Application\Web\Controller\ReceiptController;
+use RentReceiptCli\Application\Web\Controller\SettingsController;
 use RentReceiptCli\Application\Web\Middleware\AuthMiddleware;
 use RentReceiptCli\Application\UseCase\ProcessReceiptForPayment;
 use RentReceiptCli\Core\Service\Pdf\PdfOptions;
@@ -21,6 +22,7 @@ use RentReceiptCli\Infrastructure\Database\SqliteTenantRepository;
 use RentReceiptCli\Infrastructure\Database\SqlitePropertyRepository;
 use RentReceiptCli\Infrastructure\Database\SqliteRentPaymentRepository;
 use RentReceiptCli\Infrastructure\Database\SqliteReceiptRepository;
+use RentReceiptCli\Infrastructure\Database\SqliteSettingsRepository;
 use RentReceiptCli\Infrastructure\Logging\FileLogger;
 use RentReceiptCli\Infrastructure\Mail\SmtpReceiptSender;
 use RentReceiptCli\Infrastructure\Pdf\WkhtmltopdfPdfGenerator;
@@ -54,8 +56,9 @@ final class WebKernel
         $propertyRepo = new SqlitePropertyRepository($pdo);
         $paymentRepo  = new SqliteRentPaymentRepository($pdo);
         $receiptRepo  = new SqliteReceiptRepository($pdo);
+        $settingsRepo = new SqliteSettingsRepository($pdo);
 
-        $processUseCase = self::buildProcessUseCase($config, $pdo, $ownerRepo, $logger);
+        $processUseCase = self::buildProcessUseCase($config, $pdo, $ownerRepo, $logger, $settingsRepo);
 
         $twig = Twig::create(
             __DIR__ . '/../../../templates/web',
@@ -70,8 +73,9 @@ final class WebKernel
         $tenantCtrl   = new TenantController($twig, $tenantRepo);
         $propertyCtrl = new PropertyController($twig, $propertyRepo, $ownerRepo);
         $paymentCtrl  = new PaymentController($twig, $paymentRepo, $receiptRepo, $tenantRepo, $propertyRepo);
-        $sendPort     = self::buildSendPort($config, $receiptRepo, $logger);
+        $sendPort     = self::buildSendPort($config, $receiptRepo, $logger, $settingsRepo);
         $receiptCtrl  = new ReceiptController($twig, $receiptRepo, $paymentRepo, $processUseCase, $sendPort);
+        $settingsCtrl = new SettingsController($twig, $settingsRepo);
 
         $app = AppFactory::create();
         $app->add(TwigMiddleware::create($app, $twig));
@@ -86,7 +90,7 @@ final class WebKernel
 
         // Protected routes
         $app->group('', function (RouteCollectorProxy $group) use (
-            $dashCtrl, $ownerCtrl, $tenantCtrl, $propertyCtrl, $paymentCtrl, $receiptCtrl
+            $dashCtrl, $ownerCtrl, $tenantCtrl, $propertyCtrl, $paymentCtrl, $receiptCtrl, $settingsCtrl
         ) {
             $group->get('/', [$dashCtrl, 'index']);
 
@@ -128,6 +132,10 @@ final class WebKernel
             $group->post('/receipts/{id}/send', [$receiptCtrl, 'sendReceipt']);
             $group->post('/receipts/{id}/delete', [$receiptCtrl, 'destroy']);
             $group->post('/payments/{id}/process-receipt', [$receiptCtrl, 'processFromPayment']);
+
+            // Settings
+            $group->get('/settings', [$settingsCtrl, 'index']);
+            $group->post('/settings', [$settingsCtrl, 'update']);
         })->add(new AuthMiddleware());
 
         return $app;
@@ -138,6 +146,7 @@ final class WebKernel
         \PDO $pdo,
         SqliteOwnerRepository $ownerRepo,
         FileLogger $logger,
+        SqliteSettingsRepository $settingsRepo,
     ): ProcessReceiptForPayment {
         $rentPaymentRepo = new SqliteRentPaymentRepository($pdo);
         $receiptRepo     = new SqliteReceiptRepository($pdo);
@@ -177,7 +186,7 @@ final class WebKernel
         }
         $landlordCity = (string) ($config['landlord']['city'] ?? '');
 
-        $sendPort = self::buildSendPort($config, $receiptRepo, $logger);
+        $sendPort = self::buildSendPort($config, $receiptRepo, $logger, $settingsRepo);
 
         $upsertPort = new SqliteUpsertPaymentForPeriod($rentPaymentRepo, $propertyRepo);
         $genPort    = new SinglePaymentReceiptGenerator(
@@ -193,6 +202,7 @@ final class WebKernel
         array $config,
         SqliteReceiptRepository $receiptRepo,
         FileLogger $logger,
+        SqliteSettingsRepository $settingsRepo,
     ): SingleReceiptSenderAndArchiver {
         $ncCfg     = $config['nextcloud'] ?? [];
         $local     = new LocalReceiptArchiver($config['paths']['storage_pdf']);
@@ -205,9 +215,13 @@ final class WebKernel
         $archiver = new FallbackArchiver($nextcloud, $local, $logger);
         $sender   = new SmtpReceiptSender($config['smtp']);
 
+        // DB setting takes priority over env variable
+        $targetDir = $settingsRepo->get('nextcloud_target_dir')
+            ?: (string) ($ncCfg['target_dir'] ?? '');
+
         return new SingleReceiptSenderAndArchiver(
             $receiptRepo, $sender, $archiver,
-            (string) ($ncCfg['target_dir'] ?? ''),
+            $targetDir,
         );
     }
 }
