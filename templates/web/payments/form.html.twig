@@ -37,14 +37,30 @@
                 <div class="d-flex gap-2 mb-2">
                     <button type="button" id="btn-m" class="btn btn-sm btn-outline-secondary" onclick="fillMonth(0)"></button>
                     <button type="button" id="btn-m1" class="btn btn-sm btn-outline-secondary" onclick="fillMonth(1)"></button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="openRangePicker()" title="Choisir une période personnalisée">📅</button>
                 </div>
                 <input type="hidden" id="period_start" name="period_start" value="">
                 <input type="hidden" id="period_end" name="period_end" value="">
-                <div class="input-group">
-                    <input type="text" id="period" name="period" class="form-control" value="{{ payment.period ?? currentMonth }}"
-                           pattern="\d{4}-\d{2}" placeholder="YYYY-MM" required>
-                    <span id="period-range-label" class="input-group-text text-muted small" style="display:none"></span>
+                <input type="text" id="period" name="period" class="form-control" value="{{ payment.period ?? currentMonth }}"
+                       pattern="\d{4}-\d{2}" placeholder="YYYY-MM" required>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="prorata_check">
+                    <label class="form-check-label" for="prorata_check">Entrée en cours de mois (prorata)</label>
+                </div>
+                <div id="prorata_section" class="mt-2 p-3 bg-light rounded" style="display:none">
+                    <div class="d-flex gap-2 align-items-center mb-2">
+                        <div>
+                            <label class="form-label small mb-1">Du</label>
+                            <input type="date" id="prorata_start" class="form-control form-control-sm">
+                        </div>
+                        <div>
+                            <label class="form-label small mb-1">Au</label>
+                            <input type="date" id="prorata_end" class="form-control form-control-sm">
+                        </div>
+                    </div>
+                    <div id="prorata_result" class="small text-muted"></div>
                 </div>
             </div>
 
@@ -70,11 +86,12 @@
         </form>
     </div>
 </div>
-
-<input type="text" id="range-picker-input" style="position:absolute;opacity:0;pointer-events:none">
 {% endblock %}
 
 {% block scripts %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
 <script>
 const PROPERTIES = {
     {% for p in properties %}
@@ -82,76 +99,108 @@ const PROPERTIES = {
     {% endfor %}
 };
 
-const propertySelect  = document.getElementById('property_id');
-const rentInput       = document.getElementById('rent_amount');
-const chargesInput    = document.getElementById('charges_amount');
-const isNewPayment    = {{ payment is null ? 'true' : 'false' }};
+const isNewPayment  = {{ payment is null ? 'true' : 'false' }};
+const propertySelect = document.getElementById('property_id');
+const rentInput      = document.getElementById('rent_amount');
+const chargesInput   = document.getElementById('charges_amount');
 
+// ── Property auto-select & amount fill ──────────────────────────────────────
 function fillAmountsFromProperty(id) {
     if (!isNewPayment || !id || !PROPERTIES[id]) return;
     rentInput.value    = PROPERTIES[id].rent.toFixed(2);
     chargesInput.value = PROPERTIES[id].charges.toFixed(2);
 }
 
-propertySelect.addEventListener('change', () => fillAmountsFromProperty(propertySelect.value));
+propertySelect.addEventListener('change', () => {
+    fillAmountsFromProperty(propertySelect.value);
+    updateProrata();
+});
 
-// Auto-select if only one property
 if (isNewPayment && Object.keys(PROPERTIES).length === 1) {
     const onlyId = Object.keys(PROPERTIES)[0];
-    if (!propertySelect.value) {
-        propertySelect.value = onlyId;
-    }
+    if (!propertySelect.value) propertySelect.value = onlyId;
     fillAmountsFromProperty(propertySelect.value);
 }
-</script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
-<script>
-const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
-function monthLabel(offset) {
-    const d = new Date();
-    return MONTHS_FR[(d.getMonth() + offset + 12) % 12];
-}
+// ── Period shortcuts ─────────────────────────────────────────────────────────
+const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
 function fillMonth(offset) {
     const now = new Date();
-    const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-    const ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-    document.getElementById('period').value = ym;
+    const d   = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+    const ym  = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    document.getElementById('period').value       = ym;
     document.getElementById('period_start').value = '';
-    document.getElementById('period_end').value = '';
-    document.getElementById('period-range-label').style.display = 'none';
+    document.getElementById('period_end').value   = '';
+    if (document.getElementById('prorata_check').checked) updateProrata();
 }
 
-// Init button labels
-document.getElementById('btn-m').textContent = monthLabel(0);
-document.getElementById('btn-m1').textContent = monthLabel(1);
+document.getElementById('btn-m').textContent  = MONTHS_FR[new Date().getMonth()];
+document.getElementById('btn-m1').textContent = MONTHS_FR[(new Date().getMonth() + 1) % 12];
 
-// Flatpickr range picker
-const rangePicker = flatpickr('#range-picker-input', {
-    mode: 'range',
-    locale: 'fr',
-    dateFormat: 'Y-m-d',
-    onChange: function(dates) {
-        if (dates.length === 2) {
-            const fmt = d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-            const labelFmt = d => String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
-            const ym = dates[0].getFullYear() + '-' + String(dates[0].getMonth()+1).padStart(2,'0');
-            document.getElementById('period').value = ym;
-            document.getElementById('period_start').value = fmt(dates[0]);
-            document.getElementById('period_end').value = fmt(dates[1]);
-            const label = document.getElementById('period-range-label');
-            label.textContent = labelFmt(dates[0]) + ' → ' + labelFmt(dates[1]);
-            label.style.display = '';
-            rangePicker.close();
-        }
+// ── Prorata ──────────────────────────────────────────────────────────────────
+const prorataCheck   = document.getElementById('prorata_check');
+const prorataSection = document.getElementById('prorata_section');
+const prorataResult  = document.getElementById('prorata_result');
+const prorataStart   = document.getElementById('prorata_start');
+const prorataEnd     = document.getElementById('prorata_end');
+
+flatpickr('#prorata_start', { locale: 'fr', dateFormat: 'Y-m-d', onChange: updateProrata });
+flatpickr('#prorata_end',   { locale: 'fr', dateFormat: 'Y-m-d', onChange: updateProrata });
+
+prorataCheck.addEventListener('change', function () {
+    prorataSection.style.display = this.checked ? '' : 'none';
+    if (!this.checked) {
+        document.getElementById('period_start').value = '';
+        document.getElementById('period_end').value   = '';
+        prorataResult.textContent = '';
+        fillAmountsFromProperty(propertySelect.value);
     }
 });
 
-function openRangePicker() {
-    rangePicker.open();
+function updateProrata() {
+    if (!prorataCheck.checked) return;
+
+    const startVal = prorataStart.value;
+    const endVal   = prorataEnd.value;
+    if (!startVal || !endVal) return;
+
+    const start = new Date(startVal);
+    const end   = new Date(endVal);
+    if (end < start) return;
+
+    // Period = month of start date
+    const ym = startVal.slice(0, 7);
+    document.getElementById('period').value       = ym;
+    document.getElementById('period_start').value = startVal;
+    document.getElementById('period_end').value   = endVal;
+
+    // Days in the month
+    const [year, mon] = ym.split('-').map(Number);
+    const daysInMonth = new Date(year, mon, 0).getDate();
+
+    // Days occupied (inclusive)
+    const daysOccupied = Math.round((end - start) / 86400000) + 1;
+    const ratio        = daysOccupied / daysInMonth;
+
+    // Base amounts from property defaults
+    const propId = propertySelect.value;
+    const baseRent    = propId && PROPERTIES[propId] ? PROPERTIES[propId].rent    : parseFloat(rentInput.value)    || 0;
+    const baseCharges = propId && PROPERTIES[propId] ? PROPERTIES[propId].charges : parseFloat(chargesInput.value) || 0;
+
+    const prorataRent    = Math.round(baseRent    * ratio * 100) / 100;
+    const prorataCharges = Math.round(baseCharges * ratio * 100) / 100;
+
+    rentInput.value    = prorataRent.toFixed(2);
+    chargesInput.value = prorataCharges.toFixed(2);
+
+    const pct = (ratio * 100).toFixed(1).replace('.', ',');
+    const fmtDate = v => v.split('-').reverse().join('/');
+    prorataResult.innerHTML =
+        `${fmtDate(startVal)} → ${fmtDate(endVal)} &nbsp;·&nbsp; ` +
+        `<strong>${daysOccupied} j / ${daysInMonth} j</strong> = ${pct}% &nbsp;·&nbsp; ` +
+        `Loyer : <strong>${prorataRent.toFixed(2).replace('.', ',')} €</strong>, ` +
+        `Charges : <strong>${prorataCharges.toFixed(2).replace('.', ',')} €</strong>`;
 }
 </script>
 {% endblock %}
