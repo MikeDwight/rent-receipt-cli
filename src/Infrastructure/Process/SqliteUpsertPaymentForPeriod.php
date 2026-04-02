@@ -40,15 +40,17 @@ final class SqliteUpsertPaymentForPeriod implements UpsertPaymentForPeriodPort
         $existing = $this->payments->findByTenantPropertyAndPeriod($tenantId, $propertyId, $period);
 
         if ($existing !== null) {
-            // Update existing payment with property defaults and new paid_at
+            // Preserve existing amounts — only update paid_at
             $this->payments->update(
                 $existing['id'],
                 $tenantId,
                 $propertyId,
                 $month,
-                $property['rent_amount'],
-                $property['charges_amount'],
+                $existing['rent_amount'],
+                $existing['charges_amount'],
                 $paidAt,
+                $existing['period_start'] ?? null,
+                $existing['period_end'] ?? null,
             );
 
             return ['payment_id' => $existing['id'], 'action' => 'updated'];

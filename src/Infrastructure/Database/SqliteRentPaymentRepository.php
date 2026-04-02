@@ -251,6 +251,8 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
             tenant_id,
             property_id,
             period,
+            period_start,
+            period_end,
             rent_amount,
             charges_amount,
             paid_at,
