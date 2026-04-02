@@ -99,6 +99,21 @@ final class ReceiptController extends AbstractController
         return $this->redirect($response, '/receipts?month=' . urlencode($month));
     }
 
+    public function downloadForPayment(Request $request, Response $response, array $args): Response
+    {
+        $receipt = $this->receipts->findByRentPaymentId((int) $args['id']);
+        if ($receipt === null || !file_exists($receipt['pdf_path'])) {
+            $this->flash('error', 'Quittance introuvable.');
+            return $this->redirect($response, '/payments');
+        }
+
+        $filename = basename($receipt['pdf_path']);
+        $response->getBody()->write((string) file_get_contents($receipt['pdf_path']));
+        return $response
+            ->withHeader('Content-Type', 'application/pdf')
+            ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
+
     public function processFromPayment(Request $request, Response $response, array $args): Response
     {
         $payment = $this->payments->findById((int) $args['id']);

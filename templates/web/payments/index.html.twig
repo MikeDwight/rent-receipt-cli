@@ -36,9 +36,13 @@
                     <td>{{ p.paid_at }}</td>
                     <td class="text-end">
                         <a href="/payments/{{ p.id }}/edit" class="btn btn-sm btn-outline-secondary">Modifier</a>
-                        <form method="post" action="/payments/{{ p.id }}/process-receipt" class="d-inline">
-                            <button class="btn btn-sm btn-outline-primary">Quittance</button>
-                        </form>
+                        {% if receiptsByPaymentId[p.id] is defined %}
+                            <a href="/payments/{{ p.id }}/receipt/download" class="btn btn-sm btn-outline-success">Télécharger</a>
+                        {% else %}
+                            <form method="post" action="/payments/{{ p.id }}/process-receipt" class="d-inline">
+                                <button class="btn btn-sm btn-outline-primary">Quittance</button>
+                            </form>
+                        {% endif %}
                         <form method="post" action="/payments/{{ p.id }}/delete" class="d-inline"
                               onsubmit="return confirm('Supprimer ce paiement ?')">
                             <button class="btn btn-sm btn-outline-danger">Supprimer</button>

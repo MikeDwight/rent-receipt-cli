@@ -7,6 +7,7 @@ namespace RentReceiptCli\Application\Web\Controller;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use RentReceiptCli\Application\Port\PropertyRepository;
+use RentReceiptCli\Application\Port\ReceiptRepository;
 use RentReceiptCli\Application\Port\RentPaymentRepository;
 use RentReceiptCli\Application\Port\TenantRepository;
 use RentReceiptCli\Core\Domain\ValueObject\Month;
@@ -17,6 +18,7 @@ final class PaymentController extends AbstractController
     public function __construct(
         Twig $twig,
         private readonly RentPaymentRepository $payments,
+        private readonly ReceiptRepository $receipts,
         private readonly TenantRepository $tenants,
         private readonly PropertyRepository $properties,
     ) {
@@ -41,11 +43,20 @@ final class PaymentController extends AbstractController
         $tenants = array_column($this->tenants->listAll(), null, 'id');
         $properties = array_column($this->properties->listAll(), null, 'id');
 
+        $receiptsByPaymentId = [];
+        foreach ($payments as $p) {
+            $receipt = $this->receipts->findByRentPaymentId($p['id']);
+            if ($receipt !== null) {
+                $receiptsByPaymentId[$p['id']] = $receipt;
+            }
+        }
+
         return $this->render($response, 'payments/index.html.twig', [
-            'payments'   => $payments,
-            'tenants'    => $tenants,
-            'properties' => $properties,
-            'filter'     => ['period' => $monthStr ?? ''],
+            'payments'            => $payments,
+            'tenants'             => $tenants,
+            'properties'          => $properties,
+            'receiptsByPaymentId' => $receiptsByPaymentId,
+            'filter'              => ['period' => $monthStr ?? ''],
         ]);
     }
 
