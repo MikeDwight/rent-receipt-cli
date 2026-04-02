@@ -41,19 +41,13 @@
                 <td class="d-none d-md-table-cell">{{ (p.charges_amount / 100)|number_format(2, ',', ' ') }} €</td>
                 <td class="d-none d-md-table-cell">{{ p.paid_at }}</td>
                 <td class="text-end" style="white-space:nowrap">
-                    <a href="/payments/{{ p.id }}/edit" class="btn btn-sm btn-outline-secondary" title="Modifier">
-                        <i class="bi bi-pencil"></i>
-                    </a>
+                    <a href="/payments/{{ p.id }}/edit" class="btn btn-sm btn-outline-secondary">Modifier</a>
                     <form method="post" action="/payments/{{ p.id }}/process-receipt" class="d-inline">
-                        <button class="btn btn-sm btn-outline-success" title="Générer quittance">
-                            <i class="bi bi-file-earmark-check"></i>
-                        </button>
+                        <button class="btn btn-sm btn-outline-success">Quittance</button>
                     </form>
                     <form method="post" action="/payments/{{ p.id }}/delete" class="d-inline"
                           onsubmit="return confirm('Supprimer ce paiement ?')">
-                        <button class="btn btn-sm btn-outline-danger" title="Supprimer">
-                            <i class="bi bi-trash"></i>
-                        </button>
+                        <button class="btn btn-sm btn-outline-danger">Suppr.</button>
                     </form>
                 </td>
             </tr>

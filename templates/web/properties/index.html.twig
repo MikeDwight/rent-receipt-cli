@@ -29,14 +29,10 @@
                 <td class="d-none d-md-table-cell">{{ p.address }}</td>
                 <td class="d-none d-md-table-cell">{{ owners[p.owner_id].full_name ?? '—' }}</td>
                 <td class="text-end" style="white-space:nowrap">
-                    <a href="/properties/{{ p.id }}/edit" class="btn btn-sm btn-outline-secondary" title="Modifier">
-                        <i class="bi bi-pencil"></i>
-                    </a>
+                    <a href="/properties/{{ p.id }}/edit" class="btn btn-sm btn-outline-secondary">Modifier</a>
                     <form method="post" action="/properties/{{ p.id }}/delete" class="d-inline"
                           onsubmit="return confirm('Supprimer ce bien ?')">
-                        <button class="btn btn-sm btn-outline-danger" title="Supprimer">
-                            <i class="bi bi-trash"></i>
-                        </button>
+                        <button class="btn btn-sm btn-outline-danger">Suppr.</button>
                     </form>
                 </td>
             </tr>

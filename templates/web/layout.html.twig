@@ -13,45 +13,40 @@
         .sidebar .nav-link:hover, .sidebar .nav-link.active { color: #0d6efd; background: #e9ecef; border-radius: .375rem; }
         .main-content { padding: 1.25rem; }
         @media (min-width: 768px) { .main-content { padding: 2rem; } }
-        .offcanvas .nav-link { color: #495057; padding: .5rem 1rem; border-radius: .375rem; }
-        .offcanvas .nav-link:hover, .offcanvas .nav-link.active { color: #0d6efd; background: #e9ecef; }
-        .offcanvas .nav-section { font-size: .75rem; color: #6c757d; padding: .5rem 1rem 0; margin-top: .5rem; }
+        #mobileNav { background: #0b5ed7; }
+        #mobileNav .nav-link { color: rgba(255,255,255,.85); padding: .5rem 1rem; border-radius: .375rem; }
+        #mobileNav .nav-link:hover, #mobileNav .nav-link.active { color: #fff; background: rgba(255,255,255,.15); }
+        #mobileNav .nav-section { font-size: .7rem; color: rgba(255,255,255,.5); padding: .4rem 1rem 0; text-transform: uppercase; letter-spacing: .05em; }
     </style>
 </head>
 <body>
 <nav class="navbar navbar-dark bg-primary">
     <div class="container-fluid">
-        <button class="navbar-toggler d-md-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav">
+        <button class="navbar-toggler d-md-none me-2" type="button"
+                data-bs-toggle="collapse" data-bs-target="#mobileNav" aria-expanded="false">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <a class="navbar-brand" href="/">🏠 Rent Receipt</a>
+        <a class="navbar-brand" href="/">Rent Receipt</a>
         <div class="ms-auto">
             <form method="post" action="/logout" class="d-inline">
                 <button type="submit" class="btn btn-outline-light btn-sm">Déconnexion</button>
             </form>
         </div>
     </div>
-</nav>
-
-{# Offcanvas mobile nav #}
-<div class="offcanvas offcanvas-start d-md-none" tabindex="-1" id="mobileNav">
-    <div class="offcanvas-header border-bottom">
-        <h6 class="offcanvas-title fw-bold">🏠 Rent Receipt</h6>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body p-2">
+    {# Mobile collapsible nav — plain collapse, no backdrop, links navigate normally #}
+    <div class="collapse d-md-none w-100 pb-2 px-2" id="mobileNav">
         <ul class="nav flex-column gap-1">
-            <li class="nav-item"><a class="nav-link {% if activeMenu == 'dashboard' %}active{% endif %}" href="/" data-bs-dismiss="offcanvas">Tableau de bord</a></li>
-            <li class="nav-section">GESTION</li>
-            <li class="nav-item"><a class="nav-link {% if activeMenu == 'owners' %}active{% endif %}" href="/owners" data-bs-dismiss="offcanvas">Bailleurs</a></li>
-            <li class="nav-item"><a class="nav-link {% if activeMenu == 'tenants' %}active{% endif %}" href="/tenants" data-bs-dismiss="offcanvas">Locataires</a></li>
-            <li class="nav-item"><a class="nav-link {% if activeMenu == 'properties' %}active{% endif %}" href="/properties" data-bs-dismiss="offcanvas">Biens</a></li>
-            <li class="nav-section">LOYERS</li>
-            <li class="nav-item"><a class="nav-link {% if activeMenu == 'payments' %}active{% endif %}" href="/payments" data-bs-dismiss="offcanvas">Paiements</a></li>
-            <li class="nav-item"><a class="nav-link {% if activeMenu == 'receipts' %}active{% endif %}" href="/receipts" data-bs-dismiss="offcanvas">Quittances</a></li>
+            <li class="nav-item"><a class="nav-link {% if activeMenu == 'dashboard' %}active{% endif %}" href="/">Tableau de bord</a></li>
+            <li class="nav-section">Gestion</li>
+            <li class="nav-item"><a class="nav-link {% if activeMenu == 'owners' %}active{% endif %}" href="/owners">Bailleurs</a></li>
+            <li class="nav-item"><a class="nav-link {% if activeMenu == 'tenants' %}active{% endif %}" href="/tenants">Locataires</a></li>
+            <li class="nav-item"><a class="nav-link {% if activeMenu == 'properties' %}active{% endif %}" href="/properties">Biens</a></li>
+            <li class="nav-section">Loyers</li>
+            <li class="nav-item"><a class="nav-link {% if activeMenu == 'payments' %}active{% endif %}" href="/payments">Paiements</a></li>
+            <li class="nav-item"><a class="nav-link {% if activeMenu == 'receipts' %}active{% endif %}" href="/receipts">Quittances</a></li>
         </ul>
     </div>
-</div>
+</nav>
 
 <div class="container-fluid">
     <div class="row">

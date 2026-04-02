@@ -25,14 +25,10 @@
                 <td class="d-none d-md-table-cell">{{ o.email }}</td>
                 <td class="d-none d-md-table-cell">{{ o.address }}</td>
                 <td class="text-end" style="white-space:nowrap">
-                    <a href="/owners/{{ o.id }}/edit" class="btn btn-sm btn-outline-secondary" title="Modifier">
-                        <i class="bi bi-pencil"></i>
-                    </a>
+                    <a href="/owners/{{ o.id }}/edit" class="btn btn-sm btn-outline-secondary">Modifier</a>
                     <form method="post" action="/owners/{{ o.id }}/delete" class="d-inline"
                           onsubmit="return confirm('Supprimer ce bailleur ?')">
-                        <button class="btn btn-sm btn-outline-danger" title="Supprimer">
-                            <i class="bi bi-trash"></i>
-                        </button>
+                        <button class="btn btn-sm btn-outline-danger">Suppr.</button>
                     </form>
                 </td>
             </tr>

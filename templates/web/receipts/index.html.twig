@@ -46,22 +46,16 @@
                     {% endif %}
                 </td>
                 <td class="text-end" style="white-space:nowrap">
-                    <a href="/receipts/{{ r.id }}/download" class="btn btn-sm btn-outline-primary" title="Télécharger">
-                        <i class="bi bi-download"></i>
-                    </a>
+                    <a href="/receipts/{{ r.id }}/download" class="btn btn-sm btn-outline-primary">Télécharger</a>
                     {% if not r.sent_at %}
                         <form method="post" action="/receipts/{{ r.id }}/send" class="d-inline"
                               onsubmit="return confirm('Envoyer la quittance par email au locataire ?')">
-                            <button class="btn btn-sm btn-outline-success" title="Envoyer par email">
-                                <i class="bi bi-envelope"></i>
-                            </button>
+                            <button class="btn btn-sm btn-outline-success">Envoyer</button>
                         </form>
                     {% endif %}
                     <form method="post" action="/receipts/{{ r.id }}/delete" class="d-inline"
                           onsubmit="return confirm('Supprimer cette quittance et son PDF ?')">
-                        <button class="btn btn-sm btn-outline-danger" title="Supprimer">
-                            <i class="bi bi-trash"></i>
-                        </button>
+                        <button class="btn btn-sm btn-outline-danger">Suppr.</button>
                     </form>
                 </td>
             </tr>
