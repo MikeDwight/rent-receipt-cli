@@ -6,7 +6,7 @@ return [
     // Absolute paths are safer in CLI contexts
     'paths' => [
         'root' => dirname(__DIR__),
-        'database' => __DIR__ . '/../database.sqlite',
+        'database' => __DIR__ . '/../var/database.sqlite',
         'templates' => dirname(__DIR__) . '/templates',
         'storage_pdf' => dirname(__DIR__) . '/storage/pdf',
         'storage_logs' => dirname(__DIR__) . '/storage/logs',

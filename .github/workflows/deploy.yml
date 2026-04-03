@@ -23,9 +23,8 @@ jobs:
 
             # Restore ownership of source files to deploy user so git can overwrite them
             sudo chown -R $USER /opt/rent-receipt-cli
-            # Re-give www-data ownership of runtime dirs/files
+            # Re-give www-data ownership of runtime dirs (db, logs, pdfs)
             sudo chown -R www-data /opt/rent-receipt-cli/storage /opt/rent-receipt-cli/var || true
-            sudo chown www-data /opt/rent-receipt-cli/database.sqlite 2>/dev/null || true
 
             git fetch --prune origin
             git reset --hard origin/main

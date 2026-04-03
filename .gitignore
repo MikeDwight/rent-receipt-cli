@@ -16,6 +16,7 @@ config/config.local.php
 
 # SQLite local database
 database.sqlite
+/var/database.sqlite
 
 # Temporary files
 /var/
