@@ -29,15 +29,19 @@
       .subtitle {
         margin: 4px 0 0 0;
       }
-      .row {
+      .row-table {
         width: 100%;
-      }
-      .col {
-        display: inline-block;
-        vertical-align: top;
+        border-collapse: collapse;
       }
       .col-50 {
-        width: 49%;
+        width: 50%;
+        vertical-align: top;
+      }
+      .col-50:first-child {
+        padding-right: 8px;
+      }
+      .col-50:last-child {
+        padding-left: 8px;
       }
       .box {
         border: 1px solid #ddd;
@@ -91,22 +95,24 @@
       <p class="muted" style="margin: 6px 0 0 0">Émise le {{issued_at}}</p>
     </div>
 
-    <div class="row section">
-      <div class="col col-50">
-        <div class="box">
-          <strong>Bailleur</strong><br />
-          {{landlord_name}}<br />
-          <span class="muted">{{landlord_address}}</span>
-        </div>
-      </div>
-      <div class="col col-50" style="text-align: right">
-        <div class="box" style="text-align: left">
-          <strong>Locataire</strong><br />
-          {{tenant_name}}<br />
-          <span class="muted">{{tenant_address}}</span>
-        </div>
-      </div>
-    </div>
+    <table class="row-table section">
+      <tr>
+        <td class="col-50">
+          <div class="box">
+            <strong>Bailleur</strong><br />
+            {{landlord_name}}<br />
+            <span class="muted">{{landlord_address}}</span>
+          </div>
+        </td>
+        <td class="col-50">
+          <div class="box">
+            <strong>Locataire</strong><br />
+            {{tenant_name}}<br />
+            <span class="muted">{{tenant_address}}</span>
+          </div>
+        </td>
+      </tr>
+    </table>
 
     <div class="section box">
       <strong>Logement loué</strong><br />
