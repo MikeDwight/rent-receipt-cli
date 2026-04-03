@@ -11,6 +11,7 @@ use RentReceiptCli\Application\Port\RentPaymentRepository;
 use RentReceiptCli\Application\Port\SendAndArchiveReceiptPort;
 use RentReceiptCli\Application\UseCase\ProcessReceiptForPayment;
 use RentReceiptCli\Core\Domain\ValueObject\Month;
+use RentReceiptCli\Core\Service\ReceiptHtmlBuilder;
 use Slim\Views\Twig;
 
 final class ReceiptController extends AbstractController
@@ -21,8 +22,35 @@ final class ReceiptController extends AbstractController
         private readonly RentPaymentRepository $payments,
         private readonly ProcessReceiptForPayment $processUseCase,
         private readonly SendAndArchiveReceiptPort $sendAndArchive,
+        private readonly ReceiptHtmlBuilder $htmlBuilder,
     ) {
         parent::__construct($twig);
+    }
+
+    public function preview(Request $request, Response $response): Response
+    {
+        $today = date('d/m/Y');
+        $html = $this->htmlBuilder->build([
+            'receipt_number'    => 'QL-2026-04-000001',
+            'period_machine'    => '2026-04',
+            'period_label'      => '1er avril 2026 au 30 avril 2026',
+            'period_start'      => '1er avril 2026',
+            'period_end'        => '30 avril 2026',
+            'issued_at'         => $today,
+            'issued_city'       => 'Paris',
+            'landlord_name'     => 'Jean Dupont',
+            'landlord_address'  => '12 rue de la Paix, 75001 Paris',
+            'tenant_name'       => 'Marie Martin',
+            'tenant_address'    => '8 avenue des Fleurs, 75002 Paris',
+            'property_label'    => 'Appartement T2 — Rue des Lilas',
+            'property_address'  => '8 avenue des Fleurs, 75002 Paris',
+            'rent_amount_eur'   => '800,00 €',
+            'charges_amount_eur'=> '50,00 €',
+            'total_amount_eur'  => '850,00 €',
+            'paid_at'           => '01/04/2026',
+        ]);
+        $response->getBody()->write($html);
+        return $response->withHeader('Content-Type', 'text/html; charset=UTF-8');
     }
 
     public function index(Request $request, Response $response): Response

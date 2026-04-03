@@ -59,6 +59,7 @@ final class WebKernel
         $settingsRepo = new SqliteSettingsRepository($pdo);
 
         $processUseCase = self::buildProcessUseCase($config, $pdo, $ownerRepo, $logger, $settingsRepo);
+        $htmlBuilder    = self::buildHtmlBuilder($config);
 
         $twig = Twig::create(
             __DIR__ . '/../../../templates/web',
@@ -74,7 +75,7 @@ final class WebKernel
         $propertyCtrl = new PropertyController($twig, $propertyRepo, $ownerRepo);
         $paymentCtrl  = new PaymentController($twig, $paymentRepo, $receiptRepo, $tenantRepo, $propertyRepo);
         $sendPort     = self::buildSendPort($config, $receiptRepo, $logger, $settingsRepo);
-        $receiptCtrl  = new ReceiptController($twig, $receiptRepo, $paymentRepo, $processUseCase, $sendPort);
+        $receiptCtrl  = new ReceiptController($twig, $receiptRepo, $paymentRepo, $processUseCase, $sendPort, $htmlBuilder);
         $settingsCtrl = new SettingsController($twig, $settingsRepo);
 
         $app = AppFactory::create();
@@ -127,6 +128,7 @@ final class WebKernel
             $group->post('/payments/{id}/delete', [$paymentCtrl, 'destroy']);
 
             // Receipts
+            $group->get('/receipts/preview', [$receiptCtrl, 'preview']);
             $group->get('/receipts', [$receiptCtrl, 'index']);
             $group->get('/receipts/{id}/download', [$receiptCtrl, 'download']);
             $group->post('/receipts/{id}/send', [$receiptCtrl, 'sendReceipt']);
@@ -152,9 +154,7 @@ final class WebKernel
         $receiptRepo     = new SqliteReceiptRepository($pdo);
         $propertyRepo    = new SqlitePropertyRepository($pdo);
 
-        $templatesPath = (string) ($config['paths']['templates'] ?? (__DIR__ . '/../../../templates'));
-        $renderer  = new SimpleTemplateRenderer();
-        $htmlBuilder = new ReceiptHtmlBuilder($renderer, $templatesPath . '/receipt.html');
+        $htmlBuilder = self::buildHtmlBuilder($config);
 
         $pdfConfig = $config['pdf'] ?? [];
         $pdf = new WkhtmltopdfPdfGenerator(
@@ -196,6 +196,12 @@ final class WebKernel
         );
 
         return new ProcessReceiptForPayment($upsertPort, $genPort, $sendPort);
+    }
+
+    private static function buildHtmlBuilder(array $config): ReceiptHtmlBuilder
+    {
+        $templatesPath = (string) ($config['paths']['templates'] ?? (__DIR__ . '/../../../templates'));
+        return new ReceiptHtmlBuilder(new SimpleTemplateRenderer(), $templatesPath . '/receipt.html');
     }
 
     private static function buildSendPort(
