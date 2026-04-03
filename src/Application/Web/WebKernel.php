@@ -130,7 +130,9 @@ final class WebKernel
             // Receipts
             $group->get('/receipts/preview', [$receiptCtrl, 'preview']);
             $group->get('/receipts', [$receiptCtrl, 'index']);
+
             $group->get('/receipts/{id}/download', [$receiptCtrl, 'download']);
+            $group->get('/receipts/{id}/view', [$receiptCtrl, 'view']);
             $group->post('/receipts/{id}/send', [$receiptCtrl, 'sendReceipt']);
             $group->post('/receipts/{id}/delete', [$receiptCtrl, 'destroy']);
             $group->post('/payments/{id}/process-receipt', [$receiptCtrl, 'processFromPayment']);

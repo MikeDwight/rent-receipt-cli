@@ -116,7 +116,17 @@ final class ReceiptController extends AbstractController
 
     public function download(Request $request, Response $response, array $args): Response
     {
-        $receipt = $this->receipts->findOneDetailed((int) $args['id']);
+        return $this->servePdf($response, (int) $args['id'], 'attachment');
+    }
+
+    public function view(Request $request, Response $response, array $args): Response
+    {
+        return $this->servePdf($response, (int) $args['id'], 'inline');
+    }
+
+    private function servePdf(Response $response, int $id, string $disposition): Response
+    {
+        $receipt = $this->receipts->findOneDetailed($id);
         if ($receipt === null || !file_exists($receipt['pdf_path'])) {
             $this->flash('error', 'Quittance introuvable.');
             return $this->redirect($response, '/receipts');
@@ -126,7 +136,7 @@ final class ReceiptController extends AbstractController
         $response->getBody()->write((string) file_get_contents($receipt['pdf_path']));
         return $response
             ->withHeader('Content-Type', 'application/pdf')
-            ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+            ->withHeader('Content-Disposition', $disposition . '; filename="' . $filename . '"');
     }
 
     public function processFromPayment(Request $request, Response $response, array $args): Response
