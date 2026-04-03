@@ -3,82 +3,121 @@
 {% block title %}Quittances{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0 fs-4">Quittances</h2>
-    <form method="get" action="/receipts" class="d-flex gap-2">
-        <input type="text" name="month" class="form-control form-control-sm" value="{{ month }}" placeholder="YYYY-MM" style="width:110px">
-        <button type="submit" class="btn btn-sm btn-outline-secondary">Go</button>
+<div class="flex items-center justify-between mb-8">
+    <h1 class="text-3xl font-bold tracking-tight text-on-surface">Quittances</h1>
+    <form method="get" action="/receipts" class="flex gap-3">
+        <input type="text" name="month" value="{{ month }}" placeholder="YYYY-MM"
+               class="bg-surface-container-lowest rounded-lg px-4 py-2.5 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary w-36">
+        <button type="submit"
+                class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-surface-container-high text-on-surface rounded-lg text-sm font-medium hover:bg-surface-container-highest transition-colors">
+            <span class="material-symbols-outlined text-[16px]">search</span>
+            Go
+        </button>
     </form>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <table class="table table-hover mb-0">
-        <thead class="table-light">
-            <tr>
-                <th>Période</th>
-                <th>Locataire</th>
-                <th>Email</th>
-                <th class="d-none d-md-table-cell">Archivé</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for r in receipts %}
-            <tr>
-                <td>{{ r.period ?? '—' }}</td>
-                <td>{{ r.tenant_name ?? '—' }}</td>
-                <td>
-                    {% if r.sent_at %}
-                        <span class="badge bg-success">✓ <span class="d-none d-md-inline">{{ r.sent_at|slice(0,10) }}</span></span>
-                    {% elseif r.send_error %}
-                        <span class="badge bg-danger" title="{{ r.send_error }}">Erreur</span>
-                    {% else %}
-                        <span class="badge bg-secondary">—</span>
-                    {% endif %}
-                </td>
-                <td class="d-none d-md-table-cell">
-                    {% if r.archived_at %}
-                        <span class="badge bg-success">✓ {{ r.archived_at|slice(0,10) }}</span>
-                    {% elseif r.archive_error %}
-                        <span class="badge bg-danger" title="{{ r.archive_error }}">Erreur</span>
-                    {% else %}
-                        <span class="badge bg-secondary">—</span>
-                    {% endif %}
-                </td>
-                <td class="text-end" style="white-space:nowrap">
-                    <button class="btn btn-sm btn-outline-secondary"
-                            onclick="openPreview('/receipts/{{ r.id }}/view', '{{ r.tenant_name|default('')|e('js') }} — {{ r.period|default('') }}')">Aperçu</button>
-                    <a href="/receipts/{{ r.id }}/download" class="btn btn-sm btn-outline-primary">Télécharger</a>
-                    {% if not r.sent_at %}
-                        <form method="post" action="/receipts/{{ r.id }}/send" class="d-inline"
-                              onsubmit="return confirm('Envoyer la quittance par email au locataire ?')">
-                            <button class="btn btn-sm btn-outline-success">Envoyer</button>
-                        </form>
-                    {% endif %}
-                    <form method="post" action="/receipts/{{ r.id }}/delete" class="d-inline"
-                          onsubmit="return confirm('Supprimer cette quittance et son PDF ?')">
-                        <button class="btn btn-sm btn-outline-danger">Suppr.</button>
-                    </form>
-                </td>
-            </tr>
-        {% else %}
-            <tr><td colspan="5" class="text-muted text-center py-3">Aucune quittance pour {{ month }}.</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
+<div class="bg-surface-container-lowest rounded-xl custom-shadow overflow-hidden">
+    {% if receipts is empty %}
+        <div class="px-6 py-12 text-center text-on-surface-variant text-sm">Aucune quittance pour {{ month }}.</div>
+    {% else %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-surface-container-low/50">
+                        <th class="px-6 py-4 text-[10px] text-on-surface-variant font-bold tracking-widest uppercase">Période</th>
+                        <th class="px-6 py-4 text-[10px] text-on-surface-variant font-bold tracking-widest uppercase">Locataire</th>
+                        <th class="px-6 py-4 text-[10px] text-on-surface-variant font-bold tracking-widest uppercase text-center">Email</th>
+                        <th class="px-6 py-4 text-[10px] text-on-surface-variant font-bold tracking-widest uppercase text-center hidden md:table-cell">Archivé</th>
+                        <th class="px-6 py-4"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-surface-container-low">
+                {% for r in receipts %}
+                    <tr class="hover:bg-surface-container-low/30 transition-colors">
+                        <td class="px-6 py-4 text-on-surface text-sm font-medium">{{ r.period ?? '—' }}</td>
+                        <td class="px-6 py-4 text-on-surface text-sm">{{ r.tenant_name ?? '—' }}</td>
+                        <td class="px-6 py-4 text-center">
+                            {% if r.sent_at %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-tertiary-container text-on-tertiary-container rounded-full text-xs font-medium">
+                                    <span class="material-symbols-outlined text-[12px]">check</span>
+                                    <span class="hidden md:inline">{{ r.sent_at|slice(0,10) }}</span>
+                                </span>
+                            {% elseif r.send_error %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-error-container text-on-error-container rounded-full text-xs font-medium"
+                                      title="{{ r.send_error }}">
+                                    <span class="material-symbols-outlined text-[12px]">error</span>
+                                    Erreur
+                                </span>
+                            {% else %}
+                                <span class="text-outline-variant text-sm">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-center hidden md:table-cell">
+                            {% if r.archived_at %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-tertiary-container text-on-tertiary-container rounded-full text-xs font-medium">
+                                    <span class="material-symbols-outlined text-[12px]">check</span>
+                                    {{ r.archived_at|slice(0,10) }}
+                                </span>
+                            {% elseif r.archive_error %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-error-container text-on-error-container rounded-full text-xs font-medium"
+                                      title="{{ r.archive_error }}">
+                                    <span class="material-symbols-outlined text-[12px]">error</span>
+                                    Erreur
+                                </span>
+                            {% else %}
+                                <span class="text-outline-variant text-sm">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2 flex-wrap">
+                                <button onclick="openPreview('/receipts/{{ r.id }}/view', '{{ r.tenant_name|default('')|e('js') }} — {{ r.period|default('') }}')"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-high text-on-surface rounded-lg text-xs font-medium hover:bg-surface-container-highest transition-colors">
+                                    <span class="material-symbols-outlined text-[14px]">visibility</span>
+                                    <span class="hidden md:inline">Aperçu</span>
+                                </button>
+                                <a href="/receipts/{{ r.id }}/download"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-fixed/60 text-on-primary-fixed rounded-lg text-xs font-medium hover:bg-primary-fixed transition-colors">
+                                    <span class="material-symbols-outlined text-[14px]">download</span>
+                                    <span class="hidden md:inline">Télécharger</span>
+                                </a>
+                                {% if not r.sent_at %}
+                                    <form method="post" action="/receipts/{{ r.id }}/send"
+                                          onsubmit="return confirm('Envoyer la quittance par email au locataire ?')">
+                                        <button class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-tertiary-container/40 text-on-tertiary-container rounded-lg text-xs font-medium hover:bg-tertiary-container/60 transition-colors">
+                                            <span class="material-symbols-outlined text-[14px]">send</span>
+                                            <span class="hidden md:inline">Envoyer</span>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                <form method="post" action="/receipts/{{ r.id }}/delete"
+                                      onsubmit="return confirm('Supprimer cette quittance et son PDF ?')">
+                                    <button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-error bg-error-container/10 rounded-lg text-xs font-medium hover:bg-error-container/25 transition-colors">
+                                        <span class="material-symbols-outlined text-[14px]">delete</span>
+                                        <span class="hidden md:inline">Suppr.</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
 </div>
 
-{# Modal preview #}
-<div class="modal fade" id="previewModal" tabindex="-1">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content d-flex flex-column" style="height:90vh">
-            <div class="modal-header py-2">
-                <h6 class="modal-title mb-0" id="previewTitle">Aperçu quittance</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-0" style="flex:1;min-height:0">
-                <iframe id="previewFrame" src="" style="width:100%;height:100%;border:none"></iframe>
-            </div>
+{# ── Preview modal (no Bootstrap) ────────────────────────────────────────── #}
+<div id="previewModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div class="bg-surface-container-lowest rounded-2xl custom-shadow flex flex-col w-full max-w-5xl" style="height:90vh">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-surface-container">
+            <span id="previewTitle" class="font-semibold text-on-surface text-sm">Aperçu quittance</span>
+            <button onclick="closePreview()"
+                    class="text-on-surface-variant hover:text-on-surface transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="flex-1 min-h-0">
+            <iframe id="previewFrame" src="" class="w-full h-full border-0 rounded-b-2xl"></iframe>
         </div>
     </div>
 </div>
@@ -89,10 +128,20 @@
 function openPreview(url, title) {
     document.getElementById('previewFrame').src = url;
     document.getElementById('previewTitle').textContent = title || 'Aperçu quittance';
-    new bootstrap.Modal(document.getElementById('previewModal')).show();
+    const modal = document.getElementById('previewModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
 }
-document.getElementById('previewModal').addEventListener('hidden.bs.modal', function () {
+function closePreview() {
+    const modal = document.getElementById('previewModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
     document.getElementById('previewFrame').src = '';
+    document.body.style.overflow = '';
+}
+document.getElementById('previewModal').addEventListener('click', function(e) {
+    if (e.target === this) closePreview();
 });
 </script>
 {% endblock %}

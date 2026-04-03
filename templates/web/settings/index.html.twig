@@ -3,27 +3,34 @@
 {% block title %}Paramètres{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0 fs-4">Paramètres</h2>
+<div class="mb-8">
+    <h1 class="text-3xl font-bold tracking-tight text-on-surface">Paramètres</h1>
 </div>
 
-<form method="post" action="/settings">
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white fw-semibold">Nextcloud — Archivage</div>
-        <div class="card-body">
-            <div class="mb-3">
-                <label class="form-label fw-medium" for="nextcloud_target_dir">Dossier de destination</label>
-                <input type="text" class="form-control" id="nextcloud_target_dir" name="nextcloud_target_dir"
-                       value="{{ nextcloud_target_dir }}"
-                       placeholder="ex: Loyers/Quittances">
-                <div class="form-text">
-                    Chemin dans Nextcloud où les quittances PDF sont archivées.
-                    Si vide, le dossier par défaut <code>archives/YYYY-MM/</code> est utilisé.
-                </div>
-            </div>
+<form method="post" action="/settings" class="max-w-2xl">
+    <div class="bg-surface-container-lowest rounded-xl custom-shadow p-8 mb-6">
+        <div class="flex items-center gap-3 mb-6">
+            <span class="material-symbols-outlined text-primary">cloud_upload</span>
+            <h2 class="font-bold text-on-surface">Nextcloud — Archivage</h2>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-on-surface mb-2" for="nextcloud_target_dir">
+                Dossier de destination
+            </label>
+            <input type="text" id="nextcloud_target_dir" name="nextcloud_target_dir"
+                   value="{{ nextcloud_target_dir }}" placeholder="ex: Loyers/Quittances"
+                   class="w-full bg-surface-container-low rounded-lg px-4 py-3 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+            <p class="mt-2 text-xs text-on-surface-variant">
+                Chemin dans Nextcloud où les quittances PDF sont archivées.
+                Si vide, le dossier par défaut <code class="bg-surface-container-high px-1.5 py-0.5 rounded text-on-surface">archives/YYYY-MM/</code> est utilisé.
+            </p>
         </div>
     </div>
 
-    <button type="submit" class="btn btn-primary">Enregistrer</button>
+    <button type="submit"
+            class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-primary to-primary-dim text-on-primary rounded-xl font-semibold text-sm hover:opacity-95 transition-opacity">
+        <span class="material-symbols-outlined text-[18px]">save</span>
+        Enregistrer
+    </button>
 </form>
 {% endblock %}

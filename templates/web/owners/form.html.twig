@@ -3,28 +3,45 @@
 {% block title %}{{ owner ? 'Modifier bailleur' : 'Nouveau bailleur' }}{% endblock %}
 
 {% block content %}
-<div class="d-flex align-items-center gap-2 mb-3">
-    <a href="/owners" class="btn btn-sm btn-outline-secondary">← Retour</a>
-    <h2 class="mb-0">{{ owner ? 'Modifier bailleur' : 'Nouveau bailleur' }}</h2>
+<div class="flex items-center gap-4 mb-8">
+    <a href="/owners" class="inline-flex items-center gap-1.5 text-sm text-on-surface-variant hover:text-on-surface transition-colors">
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        Retour
+    </a>
+    <h1 class="text-3xl font-bold tracking-tight text-on-surface">
+        {{ owner ? 'Modifier bailleur' : 'Nouveau bailleur' }}
+    </h1>
 </div>
 
-<div class="card border-0 shadow-sm" style="max-width:600px">
-    <div class="card-body">
-        <form method="post" action="{{ owner ? '/owners/' ~ owner.id : '/owners' }}">
-            <div class="mb-3">
-                <label class="form-label">Nom complet <span class="text-danger">*</span></label>
-                <input type="text" name="full_name" class="form-control" value="{{ owner.full_name ?? '' }}" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input type="email" name="email" class="form-control" value="{{ owner.email ?? '' }}">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Adresse <span class="text-danger">*</span></label>
-                <input type="text" name="address" class="form-control" value="{{ owner.address ?? '' }}" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Enregistrer</button>
-        </form>
-    </div>
+<div class="bg-surface-container-lowest rounded-xl custom-shadow p-8 max-w-2xl">
+    <form method="post" action="{{ owner ? '/owners/' ~ owner.id : '/owners' }}">
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-on-surface mb-2">
+                Nom complet <span class="text-error">*</span>
+            </label>
+            <input type="text" name="full_name"
+                   class="w-full bg-surface-container-low rounded-lg px-4 py-3 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                   value="{{ owner.full_name ?? '' }}" required>
+        </div>
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-on-surface mb-2">Email</label>
+            <input type="email" name="email"
+                   class="w-full bg-surface-container-low rounded-lg px-4 py-3 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                   value="{{ owner.email ?? '' }}">
+        </div>
+        <div class="mb-8">
+            <label class="block text-sm font-medium text-on-surface mb-2">
+                Adresse <span class="text-error">*</span>
+            </label>
+            <input type="text" name="address"
+                   class="w-full bg-surface-container-low rounded-lg px-4 py-3 text-on-surface text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                   value="{{ owner.address ?? '' }}" required>
+        </div>
+        <button type="submit"
+                class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-primary to-primary-dim text-on-primary rounded-xl font-semibold text-sm hover:opacity-95 transition-opacity">
+            <span class="material-symbols-outlined text-[18px]">save</span>
+            Enregistrer
+        </button>
+    </form>
 </div>
 {% endblock %}
