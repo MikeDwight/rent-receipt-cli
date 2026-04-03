@@ -4,83 +4,223 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Rent Receipt{% endblock %} — Rent Receipt</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#fcf9f8",
+                        "surface": "#fcf9f8",
+                        "surface-bright": "#fcf9f8",
+                        "surface-dim": "#dbdad9",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f6f3f2",
+                        "surface-container": "#f0eded",
+                        "surface-container-high": "#eae8e7",
+                        "surface-container-highest": "#e4e2e2",
+                        "on-surface": "#323233",
+                        "on-surface-variant": "#5f5f5f",
+                        "outline": "#7b7b7a",
+                        "outline-variant": "#b2b2b1",
+                        "primary": "#565e74",
+                        "primary-dim": "#4a5268",
+                        "primary-fixed": "#dae2fd",
+                        "primary-fixed-dim": "#ccd4ee",
+                        "on-primary": "#f7f7ff",
+                        "on-primary-fixed": "#373f54",
+                        "primary-container": "#dae2fd",
+                        "on-primary-container": "#4a5167",
+                        "secondary": "#526074",
+                        "secondary-dim": "#465468",
+                        "secondary-container": "#d5e3fc",
+                        "on-secondary": "#f8f8ff",
+                        "on-secondary-container": "#455367",
+                        "tertiary": "#006d4a",
+                        "tertiary-dim": "#005f40",
+                        "tertiary-container": "#69f6b8",
+                        "on-tertiary": "#e6ffee",
+                        "on-tertiary-container": "#005a3c",
+                        "error": "#9f403d",
+                        "error-container": "#fe8983",
+                        "on-error": "#fff7f6",
+                        "on-error-container": "#752121",
+                        "inverse-surface": "#0e0e0e",
+                        "inverse-on-surface": "#9e9c9c",
+                        "surface-tint": "#565e74",
+                        "surface-variant": "#e4e2e2",
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.125rem",
+                        lg: "0.25rem",
+                        xl: "0.75rem",
+                        "2xl": "1rem",
+                        full: "9999px",
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { background: #f8f9fa; }
-        .navbar-brand { font-weight: 700; }
-        .sidebar { min-height: calc(100vh - 56px); background: #fff; border-right: 1px solid #dee2e6; }
-        .sidebar .nav-link { color: #495057; }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active { color: #0d6efd; background: #e9ecef; border-radius: .375rem; }
-        .main-content { padding: 1.25rem; }
-        @media (min-width: 768px) { .main-content { padding: 2rem; } }
-        #mobileNav { background: #0b5ed7; }
-        #mobileNav .nav-link { color: rgba(255,255,255,.85); padding: .5rem 1rem; border-radius: .375rem; }
-        #mobileNav .nav-link:hover, #mobileNav .nav-link.active { color: #fff; background: rgba(255,255,255,.15); }
-        #mobileNav .nav-section { font-size: .7rem; color: rgba(255,255,255,.5); padding: .4rem 1rem 0; text-transform: uppercase; letter-spacing: .05em; }
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .custom-shadow { box-shadow: 0 12px 40px rgba(50, 50, 51, 0.06); }
+        .sidebar-link { @apply flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-sm font-medium; }
+        .sidebar-link-inactive { @apply text-slate-400 hover:text-slate-200 hover:bg-slate-800/30; }
+        .sidebar-link-active { @apply text-white bg-slate-800/50 font-semibold; }
     </style>
 </head>
-<body>
-<nav class="navbar navbar-dark bg-primary">
-    <div class="container-fluid">
-        <button class="navbar-toggler d-md-none me-2" type="button"
-                data-bs-toggle="collapse" data-bs-target="#mobileNav" aria-expanded="false">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <a class="navbar-brand" href="/">Rent Receipt</a>
-        <div class="ms-auto">
-            <form method="post" action="/logout" class="d-inline">
-                <button type="submit" class="btn btn-outline-light btn-sm">Déconnexion</button>
-            </form>
+<body class="bg-background text-on-surface min-h-screen">
+
+{# ── Desktop Sidebar ─────────────────────────────────────────────────── #}
+<aside class="fixed h-full w-[220px] left-0 top-0 hidden lg:flex flex-col bg-slate-950 p-4 gap-2 z-50">
+    <div class="mb-6 px-2 flex flex-col">
+        <span class="text-xl font-bold tracking-tighter text-white">Rent Receipt</span>
+        <span class="text-xs text-slate-400 tracking-tight">Gestion immobilière</span>
+    </div>
+    <nav class="flex flex-col gap-1 flex-grow">
+        <a href="/" class="sidebar-link {{ activeMenu == 'dashboard' ? 'sidebar-link-active' : 'sidebar-link-inactive' }}">
+            <span class="material-symbols-outlined text-[20px]">dashboard</span>
+            <span>Tableau de bord</span>
+        </a>
+        <p class="px-3 pt-4 pb-1 text-[10px] font-bold tracking-widest text-slate-600 uppercase">Gestion</p>
+        <a href="/owners" class="sidebar-link {{ activeMenu == 'owners' ? 'sidebar-link-active' : 'sidebar-link-inactive' }}">
+            <span class="material-symbols-outlined text-[20px]">person</span>
+            <span>Bailleurs</span>
+        </a>
+        <a href="/tenants" class="sidebar-link {{ activeMenu == 'tenants' ? 'sidebar-link-active' : 'sidebar-link-inactive' }}">
+            <span class="material-symbols-outlined text-[20px]">groups</span>
+            <span>Locataires</span>
+        </a>
+        <a href="/properties" class="sidebar-link {{ activeMenu == 'properties' ? 'sidebar-link-active' : 'sidebar-link-inactive' }}">
+            <span class="material-symbols-outlined text-[20px]">apartment</span>
+            <span>Biens</span>
+        </a>
+        <p class="px-3 pt-4 pb-1 text-[10px] font-bold tracking-widest text-slate-600 uppercase">Loyers</p>
+        <a href="/payments" class="sidebar-link {{ activeMenu == 'payments' ? 'sidebar-link-active' : 'sidebar-link-inactive' }}">
+            <span class="material-symbols-outlined text-[20px]">payments</span>
+            <span>Paiements</span>
+        </a>
+        <a href="/receipts" class="sidebar-link {{ activeMenu == 'receipts' ? 'sidebar-link-active' : 'sidebar-link-inactive' }}">
+            <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+            <span>Quittances</span>
+        </a>
+    </nav>
+    <div class="mt-auto pt-4 border-t border-slate-800/50 flex flex-col gap-1">
+        <a href="/settings" class="sidebar-link {{ activeMenu == 'settings' ? 'sidebar-link-active' : 'sidebar-link-inactive' }}">
+            <span class="material-symbols-outlined text-[20px]">settings</span>
+            <span>Paramètres</span>
+        </a>
+        <form method="post" action="/logout">
+            <button type="submit" class="sidebar-link sidebar-link-inactive hover:text-error hover:bg-red-500/10 w-full text-left">
+                <span class="material-symbols-outlined text-[20px]">logout</span>
+                <span>Déconnexion</span>
+            </button>
+        </form>
+    </div>
+</aside>
+
+{# ── Mobile Sidebar ──────────────────────────────────────────────────── #}
+<div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="closeMobileNav()"></div>
+<aside id="mobile-nav" class="fixed h-full w-[280px] left-0 top-0 lg:hidden flex flex-col bg-slate-950 p-4 gap-2 z-50 -translate-x-full transition-transform duration-300">
+    <div class="mb-6 px-2 flex items-center justify-between">
+        <div>
+            <span class="text-xl font-bold tracking-tighter text-white">Rent Receipt</span>
+            <p class="text-xs text-slate-400 tracking-tight">Gestion immobilière</p>
         </div>
+        <button onclick="closeMobileNav()" class="text-slate-400 hover:text-white p-1">
+            <span class="material-symbols-outlined">close</span>
+        </button>
     </div>
-    {# Mobile collapsible nav — plain collapse, no backdrop, links navigate normally #}
-    <div class="collapse d-md-none w-100 pb-2 px-2" id="mobileNav">
-        <ul class="nav flex-column gap-1">
-            <li class="nav-item"><a class="nav-link {% if activeMenu == 'dashboard' %}active{% endif %}" href="/">Tableau de bord</a></li>
-            <li class="nav-section">Gestion</li>
-            <li class="nav-item"><a class="nav-link {% if activeMenu == 'owners' %}active{% endif %}" href="/owners">Bailleurs</a></li>
-            <li class="nav-item"><a class="nav-link {% if activeMenu == 'tenants' %}active{% endif %}" href="/tenants">Locataires</a></li>
-            <li class="nav-item"><a class="nav-link {% if activeMenu == 'properties' %}active{% endif %}" href="/properties">Biens</a></li>
-            <li class="nav-section">Loyers</li>
-            <li class="nav-item"><a class="nav-link {% if activeMenu == 'payments' %}active{% endif %}" href="/payments">Paiements</a></li>
-            <li class="nav-item"><a class="nav-link {% if activeMenu == 'receipts' %}active{% endif %}" href="/receipts">Quittances</a></li>
-            <li class="nav-section">Système</li>
-            <li class="nav-item"><a class="nav-link {% if activeMenu == 'settings' %}active{% endif %}" href="/settings">Paramètres</a></li>
-        </ul>
+    <nav class="flex flex-col gap-1 flex-grow overflow-y-auto">
+        <a href="/" onclick="closeMobileNav()" class="sidebar-link {{ activeMenu == 'dashboard' ? 'sidebar-link-active' : 'sidebar-link-inactive' }}">
+            <span class="material-symbols-outlined text-[20px]">dashboard</span>
+            <span>Tableau de bord</span>
+        </a>
+        <p class="px-3 pt-4 pb-1 text-[10px] font-bold tracking-widest text-slate-600 uppercase">Gestion</p>
+        <a href="/owners" onclick="closeMobileNav()" class="sidebar-link {{ activeMenu == 'owners' ? 'sidebar-link-active' : 'sidebar-link-inactive' }}">
+            <span class="material-symbols-outlined text-[20px]">person</span>
+            <span>Bailleurs</span>
+        </a>
+        <a href="/tenants" onclick="closeMobileNav()" class="sidebar-link {{ activeMenu == 'tenants' ? 'sidebar-link-active' : 'sidebar-link-inactive' }}">
+            <span class="material-symbols-outlined text-[20px]">groups</span>
+            <span>Locataires</span>
+        </a>
+        <a href="/properties" onclick="closeMobileNav()" class="sidebar-link {{ activeMenu == 'properties' ? 'sidebar-link-active' : 'sidebar-link-inactive' }}">
+            <span class="material-symbols-outlined text-[20px]">apartment</span>
+            <span>Biens</span>
+        </a>
+        <p class="px-3 pt-4 pb-1 text-[10px] font-bold tracking-widest text-slate-600 uppercase">Loyers</p>
+        <a href="/payments" onclick="closeMobileNav()" class="sidebar-link {{ activeMenu == 'payments' ? 'sidebar-link-active' : 'sidebar-link-inactive' }}">
+            <span class="material-symbols-outlined text-[20px]">payments</span>
+            <span>Paiements</span>
+        </a>
+        <a href="/receipts" onclick="closeMobileNav()" class="sidebar-link {{ activeMenu == 'receipts' ? 'sidebar-link-active' : 'sidebar-link-inactive' }}">
+            <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+            <span>Quittances</span>
+        </a>
+    </nav>
+    <div class="mt-auto pt-4 border-t border-slate-800/50 flex flex-col gap-1">
+        <a href="/settings" onclick="closeMobileNav()" class="sidebar-link {{ activeMenu == 'settings' ? 'sidebar-link-active' : 'sidebar-link-inactive' }}">
+            <span class="material-symbols-outlined text-[20px]">settings</span>
+            <span>Paramètres</span>
+        </a>
+        <form method="post" action="/logout">
+            <button type="submit" class="sidebar-link sidebar-link-inactive hover:text-error hover:bg-red-500/10 w-full text-left">
+                <span class="material-symbols-outlined text-[20px]">logout</span>
+                <span>Déconnexion</span>
+            </button>
+        </form>
     </div>
-</nav>
+</aside>
 
-<div class="container-fluid">
-    <div class="row">
-        {# Desktop sidebar #}
-        <nav class="col-md-2 sidebar py-3 d-none d-md-block">
-            <ul class="nav flex-column gap-1">
-                <li class="nav-item"><a class="nav-link {% if activeMenu == 'dashboard' %}active{% endif %}" href="/">Tableau de bord</a></li>
-                <li class="nav-item mt-2 text-muted small px-3">GESTION</li>
-                <li class="nav-item"><a class="nav-link {% if activeMenu == 'owners' %}active{% endif %}" href="/owners">Bailleurs</a></li>
-                <li class="nav-item"><a class="nav-link {% if activeMenu == 'tenants' %}active{% endif %}" href="/tenants">Locataires</a></li>
-                <li class="nav-item"><a class="nav-link {% if activeMenu == 'properties' %}active{% endif %}" href="/properties">Biens</a></li>
-                <li class="nav-item mt-2 text-muted small px-3">LOYERS</li>
-                <li class="nav-item"><a class="nav-link {% if activeMenu == 'payments' %}active{% endif %}" href="/payments">Paiements</a></li>
-                <li class="nav-item"><a class="nav-link {% if activeMenu == 'receipts' %}active{% endif %}" href="/receipts">Quittances</a></li>
-                <li class="nav-item mt-2 text-muted small px-3">SYSTÈME</li>
-                <li class="nav-item"><a class="nav-link {% if activeMenu == 'settings' %}active{% endif %}" href="/settings">Paramètres</a></li>
-            </ul>
-        </nav>
+{# ── Topbar ──────────────────────────────────────────────────────────── #}
+<header class="fixed top-0 right-0 left-0 lg:left-[220px] h-16 z-40 bg-white/80 backdrop-blur-xl border-b border-surface-container flex items-center px-6 gap-4">
+    <button onclick="toggleMobileNav()" class="lg:hidden text-on-surface-variant hover:text-on-surface transition-colors">
+        <span class="material-symbols-outlined">menu</span>
+    </button>
+    <span class="lg:hidden font-bold tracking-tight text-on-surface">Rent Receipt</span>
+</header>
 
-        <main class="col-md-10 main-content">
-            {% if flash %}
-                <div class="alert alert-{{ flash.type == 'error' ? 'danger' : 'success' }} alert-dismissible fade show" role="alert">
-                    {{ flash.message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endif %}
-            {% block content %}{% endblock %}
-        </main>
-    </div>
-</div>
+{# ── Main Content ────────────────────────────────────────────────────── #}
+<main class="pt-24 pb-12 px-4 md:px-6 lg:ml-[220px] max-w-7xl mx-auto">
+    {% if flash %}
+        <div id="flash-msg" class="mb-6 flex items-start gap-3 px-4 py-3 rounded-xl text-sm font-medium
+            {{ flash.type == 'error'
+                ? 'bg-error-container text-on-error-container'
+                : 'bg-tertiary-container text-on-tertiary-container' }}">
+            <span class="material-symbols-outlined text-[18px] mt-0.5">
+                {{ flash.type == 'error' ? 'error' : 'check_circle' }}
+            </span>
+            <span class="flex-1">{{ flash.message }}</span>
+            <button onclick="document.getElementById('flash-msg').remove()" class="opacity-60 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 {% block scripts %}{% endblock %}
+
+<script>
+    const mobileNav = document.getElementById('mobile-nav');
+    const overlay   = document.getElementById('mobile-overlay');
+    function openMobileNav() {
+        mobileNav.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeMobileNav() {
+        mobileNav.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+    function toggleMobileNav() {
+        mobileNav.classList.contains('-translate-x-full') ? openMobileNav() : closeMobileNav();
+    }
+</script>
 </body>
 </html>

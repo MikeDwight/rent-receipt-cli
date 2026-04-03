@@ -3,79 +3,149 @@
 {% block title %}Tableau de bord{% endblock %}
 
 {% block content %}
-<h2 class="mb-4 fs-4">Tableau de bord</h2>
+{# ── Header ──────────────────────────────────────────────────────────── #}
+<div class="mb-10">
+    <h1 class="text-3xl font-bold tracking-tight text-on-surface mb-2">Tableau de bord</h1>
+    <p class="text-on-surface-variant text-sm">Bienvenue. Voici l'état actuel de votre gestion immobilière.</p>
+</div>
 
-<div class="row g-3 mb-4">
-    <div class="col-4">
-        <div class="card text-center border-0 shadow-sm">
-            <div class="card-body py-3">
-                <div class="display-6 text-primary fw-bold">{{ ownerCount }}</div>
-                <div class="text-muted small">Bailleurs</div>
-                <a href="/owners" class="btn btn-sm btn-outline-primary mt-2">Gérer</a>
+{# ── Stat Cards ──────────────────────────────────────────────────────── #}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-surface-container-lowest p-6 rounded-xl custom-shadow flex flex-col justify-between">
+        <div>
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-[10px] tracking-widest text-on-surface-variant font-bold uppercase">Bailleurs</span>
+                <span class="material-symbols-outlined text-primary text-[20px]">person</span>
             </div>
+            <div class="text-4xl font-extrabold text-on-surface tracking-tight mb-2">{{ ownerCount }}</div>
         </div>
+        <a href="/owners" class="text-sm font-semibold text-primary flex items-center gap-1 hover:gap-2 transition-all">
+            Gérer <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+        </a>
     </div>
-    <div class="col-4">
-        <div class="card text-center border-0 shadow-sm">
-            <div class="card-body py-3">
-                <div class="display-6 text-success fw-bold">{{ tenantCount }}</div>
-                <div class="text-muted small">Locataires</div>
-                <a href="/tenants" class="btn btn-sm btn-outline-success mt-2">Gérer</a>
+
+    <div class="bg-surface-container-lowest p-6 rounded-xl custom-shadow flex flex-col justify-between">
+        <div>
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-[10px] tracking-widest text-on-surface-variant font-bold uppercase">Locataires</span>
+                <span class="material-symbols-outlined text-primary text-[20px]">groups</span>
             </div>
+            <div class="text-4xl font-extrabold text-on-surface tracking-tight mb-2">{{ tenantCount }}</div>
         </div>
+        <a href="/tenants" class="text-sm font-semibold text-primary flex items-center gap-1 hover:gap-2 transition-all">
+            Gérer <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+        </a>
     </div>
-    <div class="col-4">
-        <div class="card text-center border-0 shadow-sm">
-            <div class="card-body py-3">
-                <div class="display-6 text-info fw-bold">{{ propertyCount }}</div>
-                <div class="text-muted small">Biens</div>
-                <a href="/properties" class="btn btn-sm btn-outline-info mt-2">Gérer</a>
+
+    <div class="bg-surface-container-lowest p-6 rounded-xl custom-shadow flex flex-col justify-between">
+        <div>
+            <div class="flex items-center justify-between mb-4">
+                <span class="text-[10px] tracking-widest text-on-surface-variant font-bold uppercase">Biens</span>
+                <span class="material-symbols-outlined text-primary text-[20px]">apartment</span>
             </div>
+            <div class="text-4xl font-extrabold text-on-surface tracking-tight mb-2">{{ propertyCount }}</div>
         </div>
+        <a href="/properties" class="text-sm font-semibold text-primary flex items-center gap-1 hover:gap-2 transition-all">
+            Gérer <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+        </a>
     </div>
 </div>
 
-<div class="row g-3">
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white fw-semibold">Actions rapides</div>
-            <div class="card-body d-flex flex-column gap-2">
-                <a href="/payments/new" class="btn btn-outline-primary">+ Nouveau paiement</a>
-                <a href="/payments" class="btn btn-outline-secondary">Voir les paiements</a>
-                <a href="/receipts" class="btn btn-outline-secondary">Voir les quittances</a>
+{# ── Secondary Grid ──────────────────────────────────────────────────── #}
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+    {# Quick Actions #}
+    <div class="lg:col-span-4 space-y-6">
+        <div class="bg-surface-container-low p-8 rounded-xl">
+            <h3 class="font-bold mb-6 text-on-surface">Actions rapides</h3>
+            <div class="flex flex-col gap-3">
+                <a href="/payments/new" class="flex items-center justify-between w-full p-4 bg-gradient-to-br from-primary to-primary-dim text-on-primary rounded-xl font-semibold shadow-sm hover:opacity-95 transition-opacity">
+                    <span>Nouveau paiement</span>
+                    <span class="material-symbols-outlined">add</span>
+                </a>
+                <a href="/payments" class="flex items-center justify-between w-full p-4 bg-surface-container-lowest text-on-surface rounded-xl font-medium hover:bg-surface-container-high transition-colors">
+                    <span>Voir les paiements</span>
+                    <span class="material-symbols-outlined text-on-surface-variant">payments</span>
+                </a>
+                <a href="/receipts" class="flex items-center justify-between w-full p-4 bg-surface-container-lowest text-on-surface rounded-xl font-medium hover:bg-surface-container-high transition-colors">
+                    <span>Voir les quittances</span>
+                    <span class="material-symbols-outlined text-on-surface-variant">receipt_long</span>
+                </a>
             </div>
         </div>
     </div>
 
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white fw-semibold">
-                📋 Quittances — {{ currentMonth }}
+    {# Recent Receipts Table #}
+    <div class="lg:col-span-8">
+        <div class="bg-surface-container-lowest rounded-xl custom-shadow overflow-hidden">
+            <div class="px-6 py-5 flex items-center justify-between">
+                <h3 class="font-bold text-on-surface">Quittances récentes</h3>
+                <span class="text-xs bg-surface-container-high px-3 py-1 rounded-full text-on-surface-variant font-medium">{{ currentMonth }}</span>
             </div>
-            <div class="card-body p-0">
-                {% if currentReceipts is empty %}
-                    <p class="text-muted p-3 mb-0">Aucune quittance ce mois.</p>
-                {% else %}
-                    <table class="table table-sm mb-0">
-                        <thead class="table-light">
-                            <tr><th>Locataire</th><th>Email</th><th>Archivé</th></tr>
-                        </thead>
-                        <tbody>
-                        {% for r in currentReceipts %}
-                            <tr>
-                                <td>{{ r.tenant_name ?? r.period ?? '—' }}</td>
-                                <td>{% if r.sent_at %}<span class="badge bg-success">✓</span>{% else %}<span class="badge bg-secondary">—</span>{% endif %}</td>
-                                <td>{% if r.archived_at %}<span class="badge bg-success">✓</span>{% else %}<span class="badge bg-secondary">—</span>{% endif %}</td>
+
+            {% if currentReceipts is empty %}
+                <div class="px-6 pb-8 text-on-surface-variant text-sm">Aucune quittance ce mois.</div>
+            {% else %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-surface-container-low/50">
+                                <th class="px-6 py-4 text-[10px] text-on-surface-variant font-bold tracking-widest uppercase">Locataire</th>
+                                <th class="px-6 py-4 text-[10px] text-on-surface-variant font-bold tracking-widest uppercase text-center">Email</th>
+                                <th class="px-6 py-4 text-[10px] text-on-surface-variant font-bold tracking-widest uppercase text-center">Archivé</th>
+                                <th class="px-6 py-4 text-[10px] text-on-surface-variant font-bold tracking-widest uppercase text-right">Action</th>
                             </tr>
-                        {% endfor %}
+                        </thead>
+                        <tbody class="divide-y divide-surface-container-low">
+                            {% for r in currentReceipts %}
+                            <tr class="hover:bg-surface-container-low/30 transition-colors">
+                                <td class="px-6 py-4">
+                                    <span class="font-semibold text-on-surface text-sm">{{ r.tenant_name ?? r.period ?? '—' }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    {% if r.sent_at %}
+                                        <span class="inline-flex items-center justify-center h-7 w-7 rounded-full bg-tertiary-container text-on-tertiary-container">
+                                            <span class="material-symbols-outlined text-[16px]">check</span>
+                                        </span>
+                                    {% else %}
+                                        <span class="text-outline-variant text-sm">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    {% if r.archived_at %}
+                                        <span class="inline-flex items-center justify-center h-7 w-7 rounded-full bg-tertiary-container text-on-tertiary-container">
+                                            <span class="material-symbols-outlined text-[16px]">check</span>
+                                        </span>
+                                    {% else %}
+                                        <span class="text-outline-variant text-sm">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <a href="/receipts" class="text-primary hover:text-primary-dim transition-colors">
+                                        <span class="material-symbols-outlined">chevron_right</span>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
-                {% endif %}
-            </div>
-            <div class="card-footer bg-white text-end">
-                <a href="/receipts" class="btn btn-sm btn-outline-secondary">Voir toutes →</a>
-            </div>
+                </div>
+                <div class="px-6 py-4 bg-surface-container-low/20">
+                    <a href="/receipts" class="text-sm font-medium text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1">
+                        Voir tout l'historique
+                        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    </a>
+                </div>
+            {% endif %}
         </div>
     </div>
+
 </div>
+{% endblock %}
+
+{% block scripts %}
+{# Mobile FAB — new payment #}
+<a href="/payments/new" class="fixed bottom-8 right-8 h-14 w-14 rounded-full bg-gradient-to-br from-primary to-primary-dim text-on-primary shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform lg:hidden">
+    <span class="material-symbols-outlined">add</span>
+</a>
 {% endblock %}
