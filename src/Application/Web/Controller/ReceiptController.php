@@ -222,8 +222,8 @@ final class ReceiptController extends AbstractController
 
         $options = [
             'period'        => $period,
-            'period_start'  => $payment['period_start'] ?? "{$year}-{$mon}-01",
-            'period_end'    => $payment['period_end']   ?? "{$year}-{$mon}-" . str_pad((string) $lastDay, 2, '0', STR_PAD_LEFT),
+            'period_start'  => $payment['period_start'] ?: null,
+            'period_end'    => $payment['period_end']   ?: null,
             'paid_at'       => new \DateTimeImmutable($payment['paid_at']),
             'generate_only' => true,
         ];
