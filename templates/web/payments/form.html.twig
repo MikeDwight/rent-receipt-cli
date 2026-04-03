@@ -38,10 +38,10 @@
                     <button type="button" id="btn-m" class="btn btn-sm btn-outline-secondary" onclick="fillMonth(0)"></button>
                     <button type="button" id="btn-m1" class="btn btn-sm btn-outline-secondary" onclick="fillMonth(1)"></button>
                 </div>
-                <input type="hidden" id="period_start" name="period_start" value="">
-                <input type="hidden" id="period_end" name="period_end" value="">
-                <input type="text" id="period" name="period" class="form-control" value="{{ payment.period ?? currentMonth }}"
-                       pattern="\d{4}-\d{2}" placeholder="YYYY-MM" required>
+                <input type="hidden" id="period" name="period" value="{{ payment.period ?? currentMonth }}">
+                <input type="hidden" id="period_start" name="period_start" value="{{ payment.period_start ?? '' }}">
+                <input type="hidden" id="period_end" name="period_end" value="{{ payment.period_end ?? '' }}">
+                <input type="text" id="period_display" class="form-control" readonly placeholder="Sélectionnez une période">
             </div>
 
             <div class="mb-3">
@@ -125,15 +125,28 @@ if (isNewPayment && Object.keys(PROPERTIES).length === 1) {
 // ── Period shortcuts ─────────────────────────────────────────────────────────
 const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
+function formatPeriod(ym) {
+    if (!ym) return '';
+    const [year, mon] = ym.split('-');
+    return MONTHS_FR[parseInt(mon, 10) - 1] + ' ' + year;
+}
+
 function fillMonth(offset) {
     const now = new Date();
     const d   = new Date(now.getFullYear(), now.getMonth() + offset, 1);
     const ym  = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-    document.getElementById('period').value       = ym;
-    document.getElementById('period_start').value = '';
-    document.getElementById('period_end').value   = '';
+    document.getElementById('period').value         = ym;
+    document.getElementById('period_display').value = formatPeriod(ym);
+    document.getElementById('period_start').value   = '';
+    document.getElementById('period_end').value     = '';
     if (document.getElementById('prorata_check').checked) updateProrata();
 }
+
+// Initialize display from existing value on page load
+(function () {
+    const ym = document.getElementById('period').value;
+    if (ym) document.getElementById('period_display').value = formatPeriod(ym);
+})();
 
 document.getElementById('btn-m').textContent  = MONTHS_FR[new Date().getMonth()];
 document.getElementById('btn-m1').textContent = MONTHS_FR[(new Date().getMonth() + 1) % 12];
@@ -171,9 +184,10 @@ function updateProrata() {
 
     // Period = month of start date
     const ym = startVal.slice(0, 7);
-    document.getElementById('period').value       = ym;
-    document.getElementById('period_start').value = startVal;
-    document.getElementById('period_end').value   = endVal;
+    document.getElementById('period').value         = ym;
+    document.getElementById('period_display').value = formatPeriod(ym) + ' (prorata)';
+    document.getElementById('period_start').value   = startVal;
+    document.getElementById('period_end').value     = endVal;
 
     // Days in the month
     const [year, mon] = ym.split('-').map(Number);
