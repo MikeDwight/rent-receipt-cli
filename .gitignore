@@ -20,3 +20,6 @@ database.sqlite
 # Temporary files
 /var/
 env.local.sh
+
+# Private assets (not committed)
+/assets/private/
