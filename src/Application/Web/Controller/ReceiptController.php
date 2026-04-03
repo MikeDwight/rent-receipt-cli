@@ -23,6 +23,7 @@ final class ReceiptController extends AbstractController
         private readonly ProcessReceiptForPayment $processUseCase,
         private readonly SendAndArchiveReceiptPort $sendAndArchive,
         private readonly ReceiptHtmlBuilder $htmlBuilder,
+        private readonly string $landlordCity = '',
     ) {
         parent::__construct($twig);
     }
@@ -116,27 +117,79 @@ final class ReceiptController extends AbstractController
 
     public function download(Request $request, Response $response, array $args): Response
     {
-        return $this->servePdf($response, (int) $args['id'], 'attachment');
-    }
-
-    public function view(Request $request, Response $response, array $args): Response
-    {
-        return $this->servePdf($response, (int) $args['id'], 'inline');
-    }
-
-    private function servePdf(Response $response, int $id, string $disposition): Response
-    {
-        $receipt = $this->receipts->findOneDetailed($id);
+        $receipt = $this->receipts->findOneDetailed((int) $args['id']);
         if ($receipt === null || !file_exists($receipt['pdf_path'])) {
             $this->flash('error', 'Quittance introuvable.');
             return $this->redirect($response, '/receipts');
         }
-
         $filename = basename($receipt['pdf_path']);
         $response->getBody()->write((string) file_get_contents($receipt['pdf_path']));
         return $response
             ->withHeader('Content-Type', 'application/pdf')
-            ->withHeader('Content-Disposition', $disposition . '; filename="' . $filename . '"');
+            ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
+
+    public function view(Request $request, Response $response, array $args): Response
+    {
+        $data = $this->receipts->findOneForPreview((int) $args['id']);
+        if ($data === null) {
+            $response->getBody()->write('<p>Quittance introuvable.</p>');
+            return $response->withHeader('Content-Type', 'text/html; charset=UTF-8');
+        }
+
+        [$year, $mon] = explode('-', $data['period']);
+        $lastDay = (int) (new \DateTimeImmutable("{$year}-{$mon}-01"))->modify('last day of this month')->format('d');
+        $startDisplay = $data['period_start'] ? $this->formatDateFr($data['period_start']) : "1er {$this->monthFr((int)$mon)} {$year}";
+        $endDisplay   = $data['period_end']   ? $this->formatDateFr($data['period_end'])   : "{$lastDay} {$this->monthFr((int)$mon)} {$year}";
+
+        $rentCents    = (int) $data['rent_amount'];
+        $chargesCents = (int) $data['charges_amount'];
+
+        $html = $this->htmlBuilder->build([
+            'receipt_number'     => sprintf('QL-%s-%06d', $data['period'], (int) $data['id']),
+            'period_machine'     => $data['period'],
+            'period_label'       => $startDisplay . ' au ' . $endDisplay,
+            'period_start'       => $startDisplay,
+            'period_end'         => $endDisplay,
+            'issued_at'          => date('d/m/Y'),
+            'issued_city'        => $this->landlordCity,
+            'landlord_name'      => (string) $data['owner_name'],
+            'landlord_address'   => (string) $data['owner_address'],
+            'tenant_name'        => (string) $data['tenant_name'],
+            'tenant_address'     => (string) $data['tenant_address'],
+            'property_label'     => (string) $data['property_label'],
+            'property_address'   => (string) $data['property_address'],
+            'rent_amount_eur'    => $this->formatCentsToEur($rentCents),
+            'charges_amount_eur' => $this->formatCentsToEur($chargesCents),
+            'total_amount_eur'   => $this->formatCentsToEur($rentCents + $chargesCents),
+            'paid_at'            => $this->formatDateFr((string) $data['paid_at']),
+        ]);
+
+        $response->getBody()->write($html);
+        return $response->withHeader('Content-Type', 'text/html; charset=UTF-8');
+    }
+
+    private function formatCentsToEur(int $cents): string
+    {
+        return number_format($cents / 100, 2, ',', ' ') . ' €';
+    }
+
+    private function formatDateFr(string $date): string
+    {
+        $months = ['janvier','février','mars','avril','mai','juin',
+                   'juillet','août','septembre','octobre','novembre','décembre'];
+        try {
+            $d = new \DateTimeImmutable($date);
+            return ltrim($d->format('d'), '0') . ' ' . $months[(int)$d->format('n') - 1] . ' ' . $d->format('Y');
+        } catch (\Throwable) {
+            return $date;
+        }
+    }
+
+    private function monthFr(int $m): string
+    {
+        return ['janvier','février','mars','avril','mai','juin',
+                'juillet','août','septembre','octobre','novembre','décembre'][$m - 1] ?? '';
     }
 
     public function processFromPayment(Request $request, Response $response, array $args): Response

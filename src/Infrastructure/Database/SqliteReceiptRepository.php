@@ -247,6 +247,40 @@ SQL;
         return $row ?: null;
     }
 
+    public function findOneForPreview(int $receiptId): ?array
+    {
+        $sql = <<<SQL
+        SELECT
+            r.id,
+            r.rent_payment_id,
+            r.pdf_path,
+            rp.period,
+            rp.period_start,
+            rp.period_end,
+            rp.rent_amount,
+            rp.charges_amount,
+            rp.paid_at,
+            t.full_name  AS tenant_name,
+            t.address    AS tenant_address,
+            p.label      AS property_label,
+            p.address    AS property_address,
+            o.full_name  AS owner_name,
+            o.address    AS owner_address
+        FROM receipts r
+        JOIN rent_payments rp ON rp.id = r.rent_payment_id
+        JOIN tenants    t ON t.id = rp.tenant_id
+        JOIN properties p ON p.id = rp.property_id
+        JOIN owners     o ON o.id = p.owner_id
+        WHERE r.id = :receipt_id
+        LIMIT 1
+        SQL;
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(['receipt_id' => $receiptId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row !== false ? $row : null;
+    }
+
     public function findOneDetailed(int $receiptId): ?array
     {
         $sql = <<<SQL

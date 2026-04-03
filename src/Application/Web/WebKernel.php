@@ -75,7 +75,8 @@ final class WebKernel
         $propertyCtrl = new PropertyController($twig, $propertyRepo, $ownerRepo);
         $paymentCtrl  = new PaymentController($twig, $paymentRepo, $receiptRepo, $tenantRepo, $propertyRepo);
         $sendPort     = self::buildSendPort($config, $receiptRepo, $logger, $settingsRepo);
-        $receiptCtrl  = new ReceiptController($twig, $receiptRepo, $paymentRepo, $processUseCase, $sendPort, $htmlBuilder);
+        $landlordCity = (string) ($config['landlord']['city'] ?? '');
+        $receiptCtrl  = new ReceiptController($twig, $receiptRepo, $paymentRepo, $processUseCase, $sendPort, $htmlBuilder, $landlordCity);
         $settingsCtrl = new SettingsController($twig, $settingsRepo);
 
         $app = AppFactory::create();
