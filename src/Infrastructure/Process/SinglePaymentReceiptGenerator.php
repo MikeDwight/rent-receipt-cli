@@ -89,7 +89,7 @@ final class SinglePaymentReceiptGenerator implements GenerateReceiptForPaymentPo
             'period_end' => $periodEndDisplay,
             'issued_at' => date('d/m/Y'),
             'issued_city' => $this->landlordIssueCity,
-            'paid_at' => (string) $paymentData['paid_at'],
+            'paid_at' => $this->formatDateFr((string) $paymentData['paid_at']),
             'landlord_name' => $this->landlordName,
             'landlord_address' => $this->landlordAddress,
             'tenant_name' => (string) $paymentData['tenant_name'],
@@ -123,5 +123,17 @@ final class SinglePaymentReceiptGenerator implements GenerateReceiptForPaymentPo
         $eur = $cents / 100;
         // French-style formatting: 1 000,00 €
         return number_format($eur, 2, ',', ' ') . ' €';
+    }
+
+    private function formatDateFr(string $date): string
+    {
+        $months = ['janvier','février','mars','avril','mai','juin',
+                   'juillet','août','septembre','octobre','novembre','décembre'];
+        try {
+            $d = new \DateTimeImmutable($date);
+            return ltrim($d->format('d'), '0') . ' ' . $months[(int)$d->format('n') - 1] . ' ' . $d->format('Y');
+        } catch (\Throwable) {
+            return $date;
+        }
     }
 }
