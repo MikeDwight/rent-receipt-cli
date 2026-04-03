@@ -61,7 +61,8 @@ final class SinglePaymentReceiptGenerator implements GenerateReceiptForPaymentPo
         $tenantId = (int) $paymentData['tenant_id'];
 
         // Build PDF path (same format as GenerateReceiptsForMonth)
-        $pdfPath = sprintf(dirname(__DIR__, 3) . '/var/receipts/receipt-%s-tenant-%d.pdf', $month->toString(), $tenantId);
+        $tenantSlug = $this->slugify((string) $paymentData['tenant_name']);
+        $pdfPath = sprintf(dirname(__DIR__, 3) . '/var/receipts/quittance-%s-%s.pdf', $month->toString(), $tenantSlug);
 
         // Calculate period bounds (can be overridden by caller for partial months)
         $startDate = new DateTimeImmutable(sprintf('%04d-%02d-01', $month->year(), $month->month()));
@@ -116,6 +117,18 @@ final class SinglePaymentReceiptGenerator implements GenerateReceiptForPaymentPo
             'receipt_id' => $receiptId,
             'pdf_path' => $pdfPath,
         ];
+    }
+
+    private function slugify(string $text): string
+    {
+        $text = mb_strtolower($text, 'UTF-8');
+        $text = strtr($text, [
+            'à'=>'a','â'=>'a','ä'=>'a','é'=>'e','è'=>'e','ê'=>'e','ë'=>'e',
+            'î'=>'i','ï'=>'i','ô'=>'o','ö'=>'o','ù'=>'u','û'=>'u','ü'=>'u',
+            'ç'=>'c','ñ'=>'n',
+        ]);
+        $text = preg_replace('/[^a-z0-9]+/', '-', $text) ?? $text;
+        return trim($text, '-');
     }
 
     private function formatCentsToEur(int $cents): string

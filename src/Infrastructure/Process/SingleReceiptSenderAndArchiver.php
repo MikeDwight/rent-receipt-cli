@@ -114,8 +114,7 @@ final class SingleReceiptSenderAndArchiver implements SendAndArchiveReceiptPort
                 $archiveAction = 'skipped';
                 $archiveReason = $errorMessage;
             } else {
-                $month = Month::fromString($period);
-                $filename = sprintf('receipt-%s-tenant-%d.pdf', $month->toString(), $tenantId);
+                $filename = basename($pdfPath);
 
                 $prefix = trim($this->nextcloudTargetDir, '/');
                 $remotePath = $prefix !== ''
