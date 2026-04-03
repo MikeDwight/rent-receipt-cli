@@ -295,7 +295,7 @@
     <p class="legal-text">
         Nous soussignés <strong>{{landlord_name}}</strong>, propriétaires du logement désigné ci-dessus, reconnaissons avoir reçu de <strong>{{tenant_name}}</strong> la somme de <strong>{{total_amount_eur}}</strong> au titre du paiement du loyer et des charges pour la période de location du <em>{{period_start}}</em> au <em>{{period_end}}</em> et lui en donnons quittance, sous réserve de tous nos droits.
     </p>
-    <p class="payment-date">Date de paiement : {{paid_at}}.</p>
+    <p class="payment-date" style="font-style:italic">Date de paiement : {{paid_at}}.</p>
 
     <!-- Financial table -->
     <div class="table-wrap">
@@ -325,7 +325,7 @@
 
     <!-- Signature -->
     <div class="signature-section">
-        <div class="sig-left">
+        <div class="sig-left" style="font-style:italic">
             Fait à {{issued_city}}, le {{issued_at}}<br/>
             Fait pour servir et valoir ce que de droit.
         </div>
