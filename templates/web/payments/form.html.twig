@@ -184,8 +184,9 @@ function updateProrata() {
 
     // Period = month of start date
     const ym = startVal.slice(0, 7);
+    const fmtDate = v => v.split('-').reverse().join('/');
     document.getElementById('period').value         = ym;
-    document.getElementById('period_display').value = formatPeriod(ym) + ' (prorata)';
+    document.getElementById('period_display').value = fmtDate(startVal) + ' → ' + fmtDate(endVal);
     document.getElementById('period_start').value   = startVal;
     document.getElementById('period_end').value     = endVal;
 
@@ -209,7 +210,6 @@ function updateProrata() {
     chargesInput.value = prorataCharges.toFixed(2);
 
     const pct = (ratio * 100).toFixed(1).replace('.', ',');
-    const fmtDate = v => v.split('-').reverse().join('/');
     prorataResult.innerHTML =
         `${fmtDate(startVal)} → ${fmtDate(endVal)} &nbsp;·&nbsp; ` +
         `<strong>${daysOccupied} j / ${daysInMonth} j</strong> = ${pct}% &nbsp;·&nbsp; ` +
