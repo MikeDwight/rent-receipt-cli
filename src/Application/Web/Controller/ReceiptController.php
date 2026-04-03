@@ -139,8 +139,23 @@ final class ReceiptController extends AbstractController
 
         [$year, $mon] = explode('-', $data['period']);
         $lastDay = (int) (new \DateTimeImmutable("{$year}-{$mon}-01"))->modify('last day of this month')->format('d');
-        $startDisplay = $data['period_start'] ? $this->formatDateFr($data['period_start']) : "1er {$this->monthFr((int)$mon)} {$year}";
-        $endDisplay   = $data['period_end']   ? $this->formatDateFr($data['period_end'])   : "{$lastDay} {$this->monthFr((int)$mon)} {$year}";
+
+        $isProrata = !empty($data['period_start']) && !empty($data['period_end']);
+
+        if ($isProrata) {
+            $periodStartDisplay = (new \DateTimeImmutable($data['period_start']))->format('d/m/Y');
+            $periodEndDisplay   = (new \DateTimeImmutable($data['period_end']))->format('d/m/Y');
+            $periodLabel        = $periodStartDisplay . ' au ' . $periodEndDisplay;
+        } else {
+            $periodStartDisplay = sprintf('01/%s/%s', $mon, $year);
+            $periodEndDisplay   = sprintf('%02d/%s/%s', $lastDay, $mon, $year);
+            $periodLabel        = $this->formatMonthFr((int)$mon, (int)$year);
+        }
+
+        // Use the actual generation date (created_at) so issued_at matches the PDF exactly
+        $issuedAt = !empty($data['created_at'])
+            ? (new \DateTimeImmutable($data['created_at']))->format('d/m/Y')
+            : date('d/m/Y');
 
         $rentCents    = (int) $data['rent_amount'];
         $chargesCents = (int) $data['charges_amount'];
@@ -148,10 +163,10 @@ final class ReceiptController extends AbstractController
         $html = $this->htmlBuilder->build([
             'receipt_number'     => sprintf('QL-%s-%06d', $data['period'], (int) $data['id']),
             'period_machine'     => $data['period'],
-            'period_label'       => $startDisplay . ' au ' . $endDisplay,
-            'period_start'       => $startDisplay,
-            'period_end'         => $endDisplay,
-            'issued_at'          => date('d/m/Y'),
+            'period_label'       => $periodLabel,
+            'period_start'       => $periodStartDisplay,
+            'period_end'         => $periodEndDisplay,
+            'issued_at'          => $issuedAt,
             'issued_city'        => $this->landlordCity,
             'landlord_name'      => (string) $data['owner_name'],
             'landlord_address'   => (string) $data['owner_address'],
@@ -186,10 +201,11 @@ final class ReceiptController extends AbstractController
         }
     }
 
-    private function monthFr(int $m): string
+    private function formatMonthFr(int $month, int $year): string
     {
-        return ['janvier','février','mars','avril','mai','juin',
-                'juillet','août','septembre','octobre','novembre','décembre'][$m - 1] ?? '';
+        $months = ['Janvier','Février','Mars','Avril','Mai','Juin',
+                   'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+        return ($months[$month - 1] ?? '') . ' ' . $year;
     }
 
     public function processFromPayment(Request $request, Response $response, array $args): Response

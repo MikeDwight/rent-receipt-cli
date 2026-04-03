@@ -254,6 +254,7 @@ SQL;
             r.id,
             r.rent_payment_id,
             r.pdf_path,
+            r.created_at,
             rp.period,
             rp.period_start,
             rp.period_end,
