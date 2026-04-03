@@ -75,7 +75,7 @@ final class GenerateReceiptsForMonth
                 $vars = [
                     'receipt_number' => sprintf('QL-%s-%06d', $m->toString(), $rentPaymentId),
                     'period_machine' => $m->toString(),
-                    'period_label' => $m->toString(),
+                    'period_label' => $this->formatMonthFr($m),
                     'period_start' => $startDate->format('d/m/Y'),
                     'period_end' => $endDate->format('d/m/Y'),
                     'issued_at' => date('d/m/Y'),
@@ -124,6 +124,13 @@ final class GenerateReceiptsForMonth
             ]);
             throw $e;
         }
+    }
+
+    private function formatMonthFr(Month $m): string
+    {
+        $months = ['Janvier','Février','Mars','Avril','Mai','Juin',
+                   'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+        return $months[$m->month() - 1] . ' ' . $m->year();
     }
 
     private function formatCentsToEur(int $cents): string
