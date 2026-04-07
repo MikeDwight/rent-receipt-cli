@@ -29,6 +29,7 @@ final class SmtpReceiptSender implements ReceiptSenderInterface
         $mail = new PHPMailer(true);
 
         try {
+            $mail->CharSet = PHPMailer::CHARSET_UTF8;
             $mail->isSMTP();
             $mail->Host = (string) $this->config['host'];
             $mail->Port = (int) $this->config['port'];
