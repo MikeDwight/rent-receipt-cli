@@ -49,8 +49,9 @@ final class SmtpReceiptSender implements ReceiptSenderInterface
             $mail->setFrom((string) $this->config['from_email'], (string) $this->config['from_name']);
             $mail->addAddress($request->toEmail, $request->toName);
 
+            $mail->isHTML(true);
             $mail->Subject = $request->subject;
-            $mail->Body = $request->bodyText;
+            $mail->Body = nl2br(htmlspecialchars($request->bodyText, ENT_QUOTES, 'UTF-8'));
             $mail->AltBody = $request->bodyText;
 
             if (!is_file($request->pdfPath)) {

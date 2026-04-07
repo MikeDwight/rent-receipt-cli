@@ -22,15 +22,16 @@ final class SendReceiptsForMonth
         private readonly string $nextcloudTargetDir = '',
     ) {}
 
-    private static function buildEmailBody(string $tenantName, string $monthLabel, ?int $rentAmountCents, string $landlordName): string
+    private static function buildEmailBody(string $tenantName, string $monthLabel, ?int $totalAmountCents, string $landlordName): string
     {
-        $amountPart = $rentAmountCents !== null
-            ? ', d\'un montant de ' . number_format($rentAmountCents / 100, 2, ',', ' ') . ' €'
+        $de = preg_match('/^[aeiouàâéèêëîïôùûü]/iu', $monthLabel) ? 'd\'' : 'de ';
+        $amountPart = $totalAmountCents !== null
+            ? ', d\'un montant de ' . number_format($totalAmountCents / 100, 2, ',', ' ') . ' €'
             : '';
         $signature = $landlordName !== '' ? $landlordName : 'Le bailleur';
 
         return "Bonjour {$tenantName},\n\n"
-            . "Veuillez trouver en pièce jointe votre quittance de loyer pour le mois de {$monthLabel}{$amountPart}.\n\n"
+            . "Veuillez trouver en pièce jointe votre quittance de loyer pour le mois {$de}{$monthLabel}{$amountPart}.\n\n"
             . "Cordialement,\n{$signature}";
     }
 
@@ -128,15 +129,17 @@ final class SendReceiptsForMonth
             }
 
             $ownerName = (string) ($r['owner_name'] ?? '');
-            $rentAmountCents = isset($r['rent_amount']) ? (int) $r['rent_amount'] : null;
+            $totalAmountCents = isset($r['rent_amount'])
+                ? (int) $r['rent_amount'] + (int) ($r['charges_amount'] ?? 0)
+                : null;
             $sendRes = $this->sender->send(new SendReceiptRequest(
                 toEmail: $tenantEmail,
                 toName: $tenantName,
                 subject: "Quittance de loyer – {$month->toLabel()}",
-                bodyText: self::buildEmailBody($tenantName, $month->toLabel(), $rentAmountCents, $ownerName),
+                bodyText: self::buildEmailBody($tenantName, $month->toLabel(), $totalAmountCents, $ownerName),
                 pdfPath: $pdfPath,
                 landlordName: $ownerName,
-                rentAmountCents: $rentAmountCents,
+                rentAmountCents: $totalAmountCents,
             ));
 
             if (!$sendRes->success) {

@@ -84,6 +84,7 @@ SELECT
     rp.period,
     rp.tenant_id,
     rp.rent_amount,
+    rp.charges_amount,
     t.email AS tenant_email,
     t.full_name AS tenant_name,
     o.full_name AS owner_name
@@ -122,6 +123,7 @@ SELECT
     rp.period,
     rp.tenant_id,
     rp.rent_amount,
+    rp.charges_amount,
     t.email AS tenant_email,
     t.full_name AS tenant_name,
     o.full_name AS owner_name
@@ -162,6 +164,7 @@ SELECT
     rp.period,
     rp.tenant_id,
     rp.rent_amount,
+    rp.charges_amount,
     t.email AS tenant_email,
     t.full_name AS tenant_name,
     o.full_name AS owner_name
@@ -309,6 +312,7 @@ SQL;
             rp.period,
             rp.tenant_id,
             rp.rent_amount,
+            rp.charges_amount,
             t.email AS tenant_email,
             t.full_name AS tenant_name,
             o.full_name AS owner_name
