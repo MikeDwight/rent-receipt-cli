@@ -47,6 +47,16 @@ final class Month
         return sprintf('%04d-%02d', $this->year, $this->month);
     }
 
+    public function toLabel(): string
+    {
+        $names = [
+            1 => 'janvier', 2 => 'février', 3 => 'mars', 4 => 'avril',
+            5 => 'mai', 6 => 'juin', 7 => 'juillet', 8 => 'août',
+            9 => 'septembre', 10 => 'octobre', 11 => 'novembre', 12 => 'décembre',
+        ];
+        return $names[$this->month] . ' ' . $this->year;
+    }
+
     public function year(): int { return $this->year; }
     public function month(): int { return $this->month; }
 

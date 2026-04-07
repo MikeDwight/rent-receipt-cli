@@ -9,6 +9,8 @@ final class SendReceiptRequest
         public readonly string $toName,
         public readonly string $subject,
         public readonly string $bodyText,
-        public readonly string $pdfPath
+        public readonly string $pdfPath,
+        public readonly string $landlordName = '',
+        public readonly ?int $rentAmountCents = null,
     ) {}
 }

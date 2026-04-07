@@ -22,6 +22,18 @@ final class SendReceiptsForMonth
         private readonly string $nextcloudTargetDir = '',
     ) {}
 
+    private static function buildEmailBody(string $tenantName, string $monthLabel, ?int $rentAmountCents, string $landlordName): string
+    {
+        $amountPart = $rentAmountCents !== null
+            ? ', d\'un montant de ' . number_format($rentAmountCents / 100, 2, ',', ' ') . ' €'
+            : '';
+        $signature = $landlordName !== '' ? $landlordName : 'Le bailleur';
+
+        return "Bonjour {$tenantName},\n\n"
+            . "Veuillez trouver en pièce jointe votre quittance de loyer pour le mois de {$monthLabel}{$amountPart}.\n\n"
+            . "Cordialement,\n{$signature}";
+    }
+
     /**
      * @return array{processed:int, sent:int, failed:int, skipped:int}
      */
@@ -115,12 +127,16 @@ final class SendReceiptsForMonth
                 continue;
             }
 
+            $ownerName = (string) ($r['owner_name'] ?? '');
+            $rentAmountCents = isset($r['rent_amount']) ? (int) $r['rent_amount'] : null;
             $sendRes = $this->sender->send(new SendReceiptRequest(
                 toEmail: $tenantEmail,
                 toName: $tenantName,
-                subject: "Quittance de loyer {$month->toString()}",
-                bodyText: "Bonjour,\n\nVeuillez trouver en pièce jointe votre quittance de loyer.\n\nCordialement,",
+                subject: "Quittance de loyer – {$month->toLabel()}",
+                bodyText: self::buildEmailBody($tenantName, $month->toLabel(), $rentAmountCents, $ownerName),
                 pdfPath: $pdfPath,
+                landlordName: $ownerName,
+                rentAmountCents: $rentAmountCents,
             ));
 
             if (!$sendRes->success) {

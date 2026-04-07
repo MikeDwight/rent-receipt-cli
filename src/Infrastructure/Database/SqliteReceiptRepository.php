@@ -83,11 +83,15 @@ SELECT
     r.archive_error,
     rp.period,
     rp.tenant_id,
+    rp.rent_amount,
     t.email AS tenant_email,
-    t.full_name AS tenant_name
+    t.full_name AS tenant_name,
+    o.full_name AS owner_name
 FROM receipts r
 JOIN rent_payments rp ON rp.id = r.rent_payment_id
 JOIN tenants t ON t.id = rp.tenant_id
+JOIN properties p ON p.id = rp.property_id
+JOIN owners o ON o.id = p.owner_id
 WHERE rp.period = :period
 ORDER BY r.id ASC
 SQL;
@@ -117,11 +121,15 @@ SELECT
     r.archive_error,
     rp.period,
     rp.tenant_id,
+    rp.rent_amount,
     t.email AS tenant_email,
-    t.full_name AS tenant_name
+    t.full_name AS tenant_name,
+    o.full_name AS owner_name
 FROM receipts r
 JOIN rent_payments rp ON rp.id = r.rent_payment_id
 JOIN tenants t ON t.id = rp.tenant_id
+JOIN properties p ON p.id = rp.property_id
+JOIN owners o ON o.id = p.owner_id
 WHERE rp.period = :period
   AND r.sent_at IS NULL
   AND (r.send_error IS NULL OR r.send_error = '')
@@ -153,11 +161,15 @@ SELECT
     r.archive_error,
     rp.period,
     rp.tenant_id,
+    rp.rent_amount,
     t.email AS tenant_email,
-    t.full_name AS tenant_name
+    t.full_name AS tenant_name,
+    o.full_name AS owner_name
 FROM receipts r
 JOIN rent_payments rp ON rp.id = r.rent_payment_id
 JOIN tenants t ON t.id = rp.tenant_id
+JOIN properties p ON p.id = rp.property_id
+JOIN owners o ON o.id = p.owner_id
 WHERE rp.period = :period
   AND r.sent_at IS NOT NULL
   AND r.archived_at IS NULL
@@ -296,11 +308,15 @@ SQL;
             r.archive_error,
             rp.period,
             rp.tenant_id,
+            rp.rent_amount,
             t.email AS tenant_email,
-            t.full_name AS tenant_name
+            t.full_name AS tenant_name,
+            o.full_name AS owner_name
         FROM receipts r
         JOIN rent_payments rp ON rp.id = r.rent_payment_id
         JOIN tenants t ON t.id = rp.tenant_id
+        JOIN properties p ON p.id = rp.property_id
+        JOIN owners o ON o.id = p.owner_id
         WHERE r.id = :receipt_id
         LIMIT 1
         SQL;
