@@ -45,9 +45,10 @@ final class ReceiptController extends AbstractController
             'tenant_address'    => '8 avenue des Fleurs, 75002 Paris',
             'property_label'    => 'Appartement T2 — Rue des Lilas',
             'property_address'  => '8 avenue des Fleurs, 75002 Paris',
-            'rent_amount_eur'   => '800,00 €',
-            'charges_amount_eur'=> '50,00 €',
-            'total_amount_eur'  => '850,00 €',
+            'rent_amount_eur'    => '800,00 €',
+            'charges_amount_eur' => '50,00 €',
+            'services_amount_eur'=> '15,00 €',
+            'total_amount_eur'   => '865,00 €',
             'paid_at'           => '01/04/2026',
         ]);
         $response->getBody()->write($html);
@@ -176,7 +177,8 @@ final class ReceiptController extends AbstractController
             'property_address'   => (string) $data['property_address'],
             'rent_amount_eur'    => $this->formatCentsToEur($rentCents),
             'charges_amount_eur' => $this->formatCentsToEur($chargesCents),
-            'total_amount_eur'   => $this->formatCentsToEur($rentCents + $chargesCents),
+            'services_amount_eur'=> $this->formatCentsToEur(1500),
+            'total_amount_eur'   => $this->formatCentsToEur($rentCents + $chargesCents + 1500),
             'paid_at'            => $this->formatDateFr((string) $data['paid_at']),
         ]);
 

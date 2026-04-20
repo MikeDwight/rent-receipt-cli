@@ -89,7 +89,8 @@ final class GenerateReceiptsForMonth
                     'property_address' => (string) ($row['property_address'] ?? ''),
                     'rent_amount_eur' => $this->formatCentsToEur($rentCents),
                     'charges_amount_eur' => $this->formatCentsToEur($chargesCents),
-                    'total_amount_eur' => $this->formatCentsToEur($rentCents + $chargesCents),
+                    'services_amount_eur' => $this->formatCentsToEur(1500),
+                    'total_amount_eur' => $this->formatCentsToEur($rentCents + $chargesCents + 1500),
                 ];
 
                 $html = $this->htmlBuilder->build($vars);
