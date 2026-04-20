@@ -1,0 +1,1 @@
+ALTER TABLE rent_payments ADD COLUMN services_amount INTEGER NOT NULL DEFAULT 1500;

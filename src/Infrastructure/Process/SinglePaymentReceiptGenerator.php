@@ -85,7 +85,7 @@ final class SinglePaymentReceiptGenerator implements GenerateReceiptForPaymentPo
 
         $rentCents = (int) $paymentData['rent_amount'];
         $chargesCents = (int) $paymentData['charges_amount'];
-        $servicesCents = 1500;
+        $servicesCents = (int) $paymentData['services_amount'];
 
         // Build HTML variables (same structure as GenerateReceiptsForMonth)
         $vars = [

@@ -158,8 +158,9 @@ final class ReceiptController extends AbstractController
             ? (new \DateTimeImmutable($data['created_at']))->format('d/m/Y')
             : date('d/m/Y');
 
-        $rentCents    = (int) $data['rent_amount'];
-        $chargesCents = (int) $data['charges_amount'];
+        $rentCents     = (int) $data['rent_amount'];
+        $chargesCents  = (int) $data['charges_amount'];
+        $servicesCents = (int) ($data['services_amount'] ?? 0);
 
         $html = $this->htmlBuilder->build([
             'receipt_number'     => sprintf('QL-%s-%06d', $data['period'], (int) $data['id']),
@@ -177,8 +178,8 @@ final class ReceiptController extends AbstractController
             'property_address'   => (string) $data['property_address'],
             'rent_amount_eur'    => $this->formatCentsToEur($rentCents),
             'charges_amount_eur' => $this->formatCentsToEur($chargesCents),
-            'services_amount_eur'=> $this->formatCentsToEur(1500),
-            'total_amount_eur'   => $this->formatCentsToEur($rentCents + $chargesCents + 1500),
+            'services_amount_eur'=> $this->formatCentsToEur($servicesCents),
+            'total_amount_eur'   => $this->formatCentsToEur($rentCents + $chargesCents + $servicesCents),
             'paid_at'            => $this->formatDateFr((string) $data['paid_at']),
         ]);
 

@@ -27,6 +27,7 @@ interface RentPaymentRepository
      *   period_end:?string,
      *   rent_amount:int,
      *   charges_amount:int,
+     *   services_amount:int,
      *   paid_at:string,
      *   created_at:string
      * }>
@@ -49,6 +50,7 @@ interface RentPaymentRepository
      *   period_end:?string,
      *   rent_amount:int,
      *   charges_amount:int,
+     *   services_amount:int,
      *   paid_at:string,
      *   created_at:string
      * }|null
@@ -67,6 +69,7 @@ interface RentPaymentRepository
      *   period_end:?string,
      *   rent_amount:int,
      *   charges_amount:int,
+     *   services_amount:int,
      *   paid_at:string,
      *   created_at:string
      * }|null
@@ -83,6 +86,7 @@ interface RentPaymentRepository
      *   month:string,
      *   rent_amount:int,
      *   charges_amount:int,
+     *   services_amount:int,
      *   paid_at:string,
      *   tenant_name:string,
      *   tenant_email:string,
@@ -102,6 +106,7 @@ interface RentPaymentRepository
         Month $period,
         int $rentAmount,
         int $chargesAmount,
+        int $servicesAmount,
         \DateTimeImmutable $paidAt,
         ?string $periodStart = null,
         ?string $periodEnd = null,
@@ -117,6 +122,7 @@ interface RentPaymentRepository
         Month $period,
         int $rentAmount,
         int $chargesAmount,
+        int $servicesAmount,
         \DateTimeImmutable $paidAt,
         ?string $periodStart = null,
         ?string $periodEnd = null,

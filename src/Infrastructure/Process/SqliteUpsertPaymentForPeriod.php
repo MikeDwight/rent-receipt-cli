@@ -48,6 +48,7 @@ final class SqliteUpsertPaymentForPeriod implements UpsertPaymentForPeriodPort
                 $month,
                 $existing['rent_amount'],
                 $existing['charges_amount'],
+                $existing['services_amount'],
                 $paidAt,
                 $existing['period_start'] ?? null,
                 $existing['period_end'] ?? null,
@@ -56,13 +57,14 @@ final class SqliteUpsertPaymentForPeriod implements UpsertPaymentForPeriodPort
             return ['payment_id' => $existing['id'], 'action' => 'updated'];
         }
 
-        // Create new payment with property defaults
+        // Create new payment with property defaults (services_amount defaults to 1500)
         $paymentId = $this->payments->create(
             $tenantId,
             $propertyId,
             $month,
             $property['rent_amount'],
             $property['charges_amount'],
+            1500,
             $paidAt,
         );
 

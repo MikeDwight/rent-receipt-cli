@@ -22,6 +22,7 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
             rp.period AS month,
             rp.rent_amount AS rent_amount,
             rp.charges_amount AS charges_amount,
+            rp.services_amount AS services_amount,
             rp.paid_at AS paid_at,
 
             t.full_name  AS tenant_name,
@@ -60,6 +61,7 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
             period_end,
             rent_amount,
             charges_amount,
+            services_amount,
             paid_at,
             created_at
         FROM rent_payments
@@ -111,6 +113,7 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
             $row['property_id'] = (int) $row['property_id'];
             $row['rent_amount'] = (int) $row['rent_amount'];
             $row['charges_amount'] = (int) $row['charges_amount'];
+            $row['services_amount'] = (int) $row['services_amount'];
         }
 
         return $rows;
@@ -128,6 +131,7 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
             period_end,
             rent_amount,
             charges_amount,
+            services_amount,
             paid_at,
             created_at
         FROM rent_payments
@@ -148,6 +152,7 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
         $row['property_id'] = (int) $row['property_id'];
         $row['rent_amount'] = (int) $row['rent_amount'];
         $row['charges_amount'] = (int) $row['charges_amount'];
+        $row['services_amount'] = (int) $row['services_amount'];
 
         return $row;
     }
@@ -158,6 +163,7 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
         Month $period,
         int $rentAmount,
         int $chargesAmount,
+        int $servicesAmount,
         \DateTimeImmutable $paidAt,
         ?string $periodStart = null,
         ?string $periodEnd = null,
@@ -171,6 +177,7 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
                 period_end,
                 rent_amount,
                 charges_amount,
+                services_amount,
                 paid_at,
                 created_at
             ) VALUES (
@@ -181,20 +188,22 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
                 :period_end,
                 :rent_amount,
                 :charges_amount,
+                :services_amount,
                 :paid_at,
                 datetime('now')
             )"
         );
 
         $stmt->execute([
-            ':tenant_id'    => $tenantId,
-            ':property_id'  => $propertyId,
-            ':period'       => $period->toString(),
-            ':period_start' => $periodStart,
-            ':period_end'   => $periodEnd,
-            ':rent_amount'  => $rentAmount,
+            ':tenant_id'      => $tenantId,
+            ':property_id'    => $propertyId,
+            ':period'         => $period->toString(),
+            ':period_start'   => $periodStart,
+            ':period_end'     => $periodEnd,
+            ':rent_amount'    => $rentAmount,
             ':charges_amount' => $chargesAmount,
-            ':paid_at'      => $paidAt->format('Y-m-d'),
+            ':services_amount'=> $servicesAmount,
+            ':paid_at'        => $paidAt->format('Y-m-d'),
         ]);
 
         return (int) $this->pdo->lastInsertId();
@@ -207,6 +216,7 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
         Month $period,
         int $rentAmount,
         int $chargesAmount,
+        int $servicesAmount,
         \DateTimeImmutable $paidAt,
         ?string $periodStart = null,
         ?string $periodEnd = null,
@@ -220,20 +230,22 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
                  period_end = :period_end,
                  rent_amount = :rent_amount,
                  charges_amount = :charges_amount,
+                 services_amount = :services_amount,
                  paid_at = :paid_at
              WHERE id = :id"
         );
 
         $stmt->execute([
-            ':id'           => $id,
-            ':tenant_id'    => $tenantId,
-            ':property_id'  => $propertyId,
-            ':period'       => $period->toString(),
-            ':period_start' => $periodStart,
-            ':period_end'   => $periodEnd,
-            ':rent_amount'  => $rentAmount,
+            ':id'             => $id,
+            ':tenant_id'      => $tenantId,
+            ':property_id'    => $propertyId,
+            ':period'         => $period->toString(),
+            ':period_start'   => $periodStart,
+            ':period_end'     => $periodEnd,
+            ':rent_amount'    => $rentAmount,
             ':charges_amount' => $chargesAmount,
-            ':paid_at'      => $paidAt->format('Y-m-d'),
+            ':services_amount'=> $servicesAmount,
+            ':paid_at'        => $paidAt->format('Y-m-d'),
         ]);
     }
 
@@ -255,6 +267,7 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
             period_end,
             rent_amount,
             charges_amount,
+            services_amount,
             paid_at,
             created_at
         FROM rent_payments
@@ -281,6 +294,7 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
         $row['property_id'] = (int) $row['property_id'];
         $row['rent_amount'] = (int) $row['rent_amount'];
         $row['charges_amount'] = (int) $row['charges_amount'];
+        $row['services_amount'] = (int) $row['services_amount'];
 
         return $row;
     }
@@ -295,6 +309,7 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
             rp.period AS month,
             rp.rent_amount AS rent_amount,
             rp.charges_amount AS charges_amount,
+            rp.services_amount AS services_amount,
             rp.paid_at AS paid_at,
 
             t.full_name  AS tenant_name,
@@ -323,6 +338,7 @@ final class SqliteRentPaymentRepository implements RentPaymentRepository
         $row['property_id'] = (int) $row['property_id'];
         $row['rent_amount'] = (int) $row['rent_amount'];
         $row['charges_amount'] = (int) $row['charges_amount'];
+        $row['services_amount'] = (int) $row['services_amount'];
 
         return $row;
     }

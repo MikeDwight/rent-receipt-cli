@@ -55,7 +55,7 @@
                         <td class="px-6 py-4 text-on-surface text-sm">{{ tenants[p.tenant_id].full_name ?? p.tenant_id }}</td>
                         <td class="px-6 py-4 text-on-surface text-sm hidden md:table-cell">{{ (p.rent_amount / 100)|number_format(2, ',', ' ') }} €</td>
                         <td class="px-6 py-4 text-on-surface-variant text-sm hidden md:table-cell">{{ (p.charges_amount / 100)|number_format(2, ',', ' ') }} €</td>
-                        <td class="px-6 py-4 text-on-surface-variant text-sm hidden md:table-cell">15,00 €</td>
+                        <td class="px-6 py-4 text-on-surface-variant text-sm hidden md:table-cell">{{ (p.services_amount / 100)|number_format(2, ',', ' ') }} €</td>
                         <td class="px-6 py-4 text-on-surface-variant text-sm hidden md:table-cell">{{ p.paid_at }}</td>
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
