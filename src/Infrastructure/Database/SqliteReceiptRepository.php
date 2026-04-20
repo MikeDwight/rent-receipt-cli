@@ -275,6 +275,7 @@ SQL;
             rp.period_end,
             rp.rent_amount,
             rp.charges_amount,
+            rp.services_amount,
             rp.paid_at,
             t.full_name  AS tenant_name,
             t.address    AS tenant_address,
