@@ -132,59 +132,17 @@ final class ReceiptController extends AbstractController
 
     public function view(Request $request, Response $response, array $args): Response
     {
-        $data = $this->receipts->findOneForPreview((int) $args['id']);
-        if ($data === null) {
+        $receipt = $this->receipts->findOneDetailed((int) $args['id']);
+        if ($receipt === null || !file_exists($receipt['pdf_path'])) {
             $response->getBody()->write('<p>Quittance introuvable.</p>');
             return $response->withHeader('Content-Type', 'text/html; charset=UTF-8');
         }
 
-        [$year, $mon] = explode('-', $data['period']);
-        $lastDay = (int) (new \DateTimeImmutable("{$year}-{$mon}-01"))->modify('last day of this month')->format('d');
-
-        $isProrata = !empty($data['period_start']) && !empty($data['period_end']);
-
-        if ($isProrata) {
-            $periodStartDisplay = (new \DateTimeImmutable($data['period_start']))->format('d/m/Y');
-            $periodEndDisplay   = (new \DateTimeImmutable($data['period_end']))->format('d/m/Y');
-            $periodLabel        = $periodStartDisplay . ' au ' . $periodEndDisplay;
-        } else {
-            $periodStartDisplay = sprintf('01/%s/%s', $mon, $year);
-            $periodEndDisplay   = sprintf('%02d/%s/%s', $lastDay, $mon, $year);
-            $periodLabel        = $this->formatMonthFr((int)$mon, (int)$year);
-        }
-
-        // Use the actual generation date (created_at) so issued_at matches the PDF exactly
-        $issuedAt = !empty($data['created_at'])
-            ? (new \DateTimeImmutable($data['created_at']))->format('d/m/Y')
-            : date('d/m/Y');
-
-        $rentCents     = (int) $data['rent_amount'];
-        $chargesCents  = (int) $data['charges_amount'];
-        $servicesCents = (int) ($data['services_amount'] ?? 0);
-
-        $html = $this->htmlBuilder->build([
-            'receipt_number'     => sprintf('QL-%s-%06d', $data['period'], (int) $data['id']),
-            'period_machine'     => $data['period'],
-            'period_label'       => $periodLabel,
-            'period_start'       => $periodStartDisplay,
-            'period_end'         => $periodEndDisplay,
-            'issued_at'          => $issuedAt,
-            'issued_city'        => $this->landlordCity,
-            'landlord_name'      => (string) $data['owner_name'],
-            'landlord_address'   => (string) $data['owner_address'],
-            'tenant_name'        => (string) $data['tenant_name'],
-            'tenant_address'     => (string) $data['tenant_address'],
-            'property_label'     => (string) $data['property_label'],
-            'property_address'   => (string) $data['property_address'],
-            'rent_amount_eur'    => $this->formatCentsToEur($rentCents),
-            'charges_amount_eur' => $this->formatCentsToEur($chargesCents),
-            'services_amount_eur'=> $this->formatCentsToEur($servicesCents),
-            'total_amount_eur'   => $this->formatCentsToEur($rentCents + $chargesCents + $servicesCents),
-            'paid_at'            => $this->formatDateFr((string) $data['paid_at']),
-        ]);
-
-        $response->getBody()->write($html);
-        return $response->withHeader('Content-Type', 'text/html; charset=UTF-8');
+        $filename = basename($receipt['pdf_path']);
+        $response->getBody()->write((string) file_get_contents($receipt['pdf_path']));
+        return $response
+            ->withHeader('Content-Type', 'application/pdf')
+            ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
     }
 
     private function formatCentsToEur(int $cents): string
