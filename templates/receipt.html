@@ -293,7 +293,7 @@
 
     <!-- Legal text -->
     <p class="legal-text">
-        Nous soussignés <strong>{{landlord_name}}</strong>, propriétaires du logement désigné ci-dessus, reconnaissons avoir reçu de <strong>{{tenant_name}}</strong> la somme de <strong>{{total_amount_eur}}</strong> au titre du paiement du loyer et des charges pour la période de location du <em>{{period_start}}</em> au <em>{{period_end}}</em> et lui en donnons quittance, sous réserve de tous nos droits.
+        Nous soussignés <strong>{{landlord_name}}</strong>, propriétaires du logement désigné ci-dessus, reconnaissons avoir reçu de <strong>{{tenant_name}}</strong> la somme de <strong>{{total_amount_eur}}</strong> au titre du paiement du loyer, des charges et de la participation aux services de la résidence pour la période de location du <em>{{period_start}}</em> au <em>{{period_end}}</em> et lui en donnons quittance, sous réserve de tous nos droits.
     </p>
     <p class="payment-date" style="font-style:italic">Date de paiement : {{paid_at}}.</p>
 
@@ -314,6 +314,10 @@
                 <tr>
                     <td>Charges</td>
                     <td class="right">{{charges_amount_eur}}</td>
+                </tr>
+                <tr>
+                    <td>Participation services résidence</td>
+                    <td class="right">{{services_amount_eur}}</td>
                 </tr>
                 <tr class="total-row">
                     <td>Total payé</td>

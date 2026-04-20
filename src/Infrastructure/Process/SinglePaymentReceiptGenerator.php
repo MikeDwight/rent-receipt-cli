@@ -85,6 +85,7 @@ final class SinglePaymentReceiptGenerator implements GenerateReceiptForPaymentPo
 
         $rentCents = (int) $paymentData['rent_amount'];
         $chargesCents = (int) $paymentData['charges_amount'];
+        $servicesCents = 1500;
 
         // Build HTML variables (same structure as GenerateReceiptsForMonth)
         $vars = [
@@ -104,7 +105,8 @@ final class SinglePaymentReceiptGenerator implements GenerateReceiptForPaymentPo
             'property_address' => (string) $paymentData['property_address'],
             'rent_amount_eur' => $this->formatCentsToEur($rentCents),
             'charges_amount_eur' => $this->formatCentsToEur($chargesCents),
-            'total_amount_eur' => $this->formatCentsToEur($rentCents + $chargesCents),
+            'services_amount_eur' => $this->formatCentsToEur($servicesCents),
+            'total_amount_eur' => $this->formatCentsToEur($rentCents + $chargesCents + $servicesCents),
         ];
 
         // Generate PDF
