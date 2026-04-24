@@ -145,6 +145,47 @@ final class ReceiptController extends AbstractController
             ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
     }
 
+    public function viewHtml(Request $request, Response $response, array $args): Response
+    {
+        $receipt = $this->receipts->findOneForPreview((int) $args['id']);
+        if ($receipt === null) {
+            $response->getBody()->write('<p>Quittance introuvable.</p>');
+            return $response->withHeader('Content-Type', 'text/html; charset=UTF-8');
+        }
+
+        $rentCents     = (int) $receipt['rent_amount'];
+        $chargesCents  = (int) $receipt['charges_amount'];
+        $servicesCents = (int) ($receipt['services_amount'] ?? 0);
+        $totalCents    = $rentCents + $chargesCents + $servicesCents;
+
+        $periodStart = $this->formatDateFr((string) $receipt['period_start']);
+        $periodEnd   = $this->formatDateFr((string) $receipt['period_end']);
+
+        $html = $this->htmlBuilder->build([
+            'receipt_number'     => sprintf('QL-%s-%06d', $receipt['period'], $receipt['rent_payment_id']),
+            'period_machine'     => (string) $receipt['period'],
+            'period_label'       => $periodStart . ' au ' . $periodEnd,
+            'period_start'       => $periodStart,
+            'period_end'         => $periodEnd,
+            'issued_at'          => date('d/m/Y'),
+            'issued_city'        => $this->landlordCity,
+            'landlord_name'      => (string) $receipt['owner_name'],
+            'landlord_address'   => (string) $receipt['owner_address'],
+            'tenant_name'        => (string) $receipt['tenant_name'],
+            'tenant_address'     => (string) $receipt['tenant_address'],
+            'property_label'     => (string) $receipt['property_label'],
+            'property_address'   => (string) $receipt['property_address'],
+            'rent_amount_eur'    => $this->formatCentsToEur($rentCents),
+            'charges_amount_eur' => $this->formatCentsToEur($chargesCents),
+            'services_amount_eur'=> $this->formatCentsToEur($servicesCents),
+            'total_amount_eur'   => $this->formatCentsToEur($totalCents),
+            'paid_at'            => date('d/m/Y', (int) strtotime((string) $receipt['paid_at'])),
+        ]);
+
+        $response->getBody()->write($html);
+        return $response->withHeader('Content-Type', 'text/html; charset=UTF-8');
+    }
+
     private function formatCentsToEur(int $cents): string
     {
         return number_format($cents / 100, 2, ',', ' ') . ' €';

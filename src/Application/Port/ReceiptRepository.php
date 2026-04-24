@@ -64,6 +64,13 @@ interface ReceiptRepository
      */
     public function findOneDetailed(int $receiptId): ?array;
 
+    /**
+     * Finds a receipt with all fields needed to render the receipt HTML template.
+     *
+     * @return array<string,mixed>|null
+     */
+    public function findOneForPreview(int $receiptId): ?array;
+
     public function delete(int $id): void;
 }
 

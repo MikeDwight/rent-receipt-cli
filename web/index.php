@@ -7,7 +7,7 @@ require __DIR__ . '/../vendor/autoload.php';
 use RentReceiptCli\Application\Web\WebKernel;
 
 ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_samesite', 'Strict');
+ini_set('session.cookie_samesite', 'Lax');
 session_name('rent_web');
 session_start();
 
