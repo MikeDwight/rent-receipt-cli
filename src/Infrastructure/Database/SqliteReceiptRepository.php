@@ -85,6 +85,7 @@ SELECT
     rp.tenant_id,
     rp.rent_amount,
     rp.charges_amount,
+    rp.services_amount,
     t.email AS tenant_email,
     t.full_name AS tenant_name,
     o.full_name AS owner_name
@@ -124,6 +125,7 @@ SELECT
     rp.tenant_id,
     rp.rent_amount,
     rp.charges_amount,
+    rp.services_amount,
     t.email AS tenant_email,
     t.full_name AS tenant_name,
     o.full_name AS owner_name
@@ -165,6 +167,7 @@ SELECT
     rp.tenant_id,
     rp.rent_amount,
     rp.charges_amount,
+    rp.services_amount,
     t.email AS tenant_email,
     t.full_name AS tenant_name,
     o.full_name AS owner_name
@@ -314,6 +317,7 @@ SQL;
             rp.tenant_id,
             rp.rent_amount,
             rp.charges_amount,
+            rp.services_amount,
             t.email AS tenant_email,
             t.full_name AS tenant_name,
             o.full_name AS owner_name

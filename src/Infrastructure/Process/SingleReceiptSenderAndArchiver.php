@@ -96,7 +96,7 @@ final class SingleReceiptSenderAndArchiver implements SendAndArchiveReceiptPort
                 $month = Month::fromString($period);
                 $ownerName = (string) ($receipt['owner_name'] ?? '');
                 $totalAmountCents = isset($receipt['rent_amount'])
-                    ? (int) $receipt['rent_amount'] + (int) ($receipt['charges_amount'] ?? 0)
+                    ? (int) $receipt['rent_amount'] + (int) ($receipt['charges_amount'] ?? 0) + (int) ($receipt['services_amount'] ?? 0)
                     : null;
                 $sendRes = $this->sender->send(new SendReceiptRequest(
                     toEmail: $tenantEmail,
