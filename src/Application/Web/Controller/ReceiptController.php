@@ -158,13 +158,26 @@ final class ReceiptController extends AbstractController
         $servicesCents = (int) ($receipt['services_amount'] ?? 0);
         $totalCents    = $rentCents + $chargesCents + $servicesCents;
 
-        $periodStart = $this->formatDateFr((string) $receipt['period_start']);
-        $periodEnd   = $this->formatDateFr((string) $receipt['period_end']);
+        $month = Month::fromString((string) $receipt['period']);
+
+        $periodStartRaw = !empty($receipt['period_start']) ? (string) $receipt['period_start'] : null;
+        $periodEndRaw   = !empty($receipt['period_end'])   ? (string) $receipt['period_end']   : null;
+
+        $defaultStart = new \DateTimeImmutable(sprintf('%04d-%02d-01', $month->year(), $month->month()));
+        $defaultEnd   = $defaultStart->modify('last day of this month');
+
+        $periodStart = $this->formatDateFr($periodStartRaw ?? $defaultStart->format('Y-m-d'));
+        $periodEnd   = $this->formatDateFr($periodEndRaw   ?? $defaultEnd->format('Y-m-d'));
+
+        $isProrata   = $periodStartRaw !== null || $periodEndRaw !== null;
+        $periodLabel = $isProrata
+            ? $periodStart . ' au ' . $periodEnd
+            : $this->formatMonthFr($month->month(), $month->year());
 
         $html = $this->htmlBuilder->build([
             'receipt_number'     => sprintf('QL-%s-%06d', $receipt['period'], $receipt['rent_payment_id']),
             'period_machine'     => (string) $receipt['period'],
-            'period_label'       => $periodStart . ' au ' . $periodEnd,
+            'period_label'       => $periodLabel,
             'period_start'       => $periodStart,
             'period_end'         => $periodEnd,
             'issued_at'          => date('d/m/Y'),
