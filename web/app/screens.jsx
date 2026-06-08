@@ -3,7 +3,7 @@
    ============================================================ */
 
 /* ---- shared row action menu ------------------------------------------- */
-function RowActions({ row, store }) {
+function RowActions({ row, store, onPreview }) {
   const { payment, tenant, property } = row;
   const st = receiptStatus(payment);
   if (!payment) {
@@ -18,13 +18,17 @@ function RowActions({ row, store }) {
   const receiptId = payment.receipt.id;
   return (
     <div className="row" style={{ gap: 6, justifyContent: "flex-end" }}>
+      {receiptId && onPreview && (
+        <button className="btn sm ghost icon" title="Aperçu PDF" onClick={() => onPreview(receiptId)}>
+          <Icon name="eye" size={15} />
+        </button>
+      )}
       {receiptId && (
         <a
           className="btn sm ghost icon"
           href={`/api/receipts/${receiptId}/pdf`}
-          target="_blank"
-          rel="noopener noreferrer"
-          title="Voir la quittance PDF"
+          download
+          title="Télécharger la quittance PDF"
           style={{ textDecoration: "none" }}
         >
           <Icon name="download" size={15} />
@@ -177,6 +181,7 @@ function Dashboard({ store }) {
 function Quittances({ store }) {
   const period = store.period;
   const [filter, setFilter] = useState("all");
+  const [previewId, setPreviewId] = useState(null);
   const rows = store.rowsForPeriod(period);
   const counts = {
     all:     rows.length,
@@ -263,7 +268,7 @@ function Quittances({ store }) {
                   </td>
                   <td>
                     <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                      <RowActions row={r} store={store} />
+                      <RowActions row={r} store={store} onPreview={setPreviewId} />
                     </div>
                   </td>
                 </tr>
@@ -275,6 +280,29 @@ function Quittances({ store }) {
           <div className="center muted" style={{ padding: 50 }}>Aucune quittance pour ce filtre.</div>
         )}
       </div>
+
+      {previewId && (
+        <Modal onClose={() => setPreviewId(null)} width={860}>
+          <div className="modal-head">
+            <div className="row" style={{ gap: 12 }}>
+              <div className="brand-mark" style={{ background: "var(--terra-soft)", color: "var(--terra-deep)" }}>
+                <Icon name="receipt" size={18} />
+              </div>
+              <div>
+                <div style={{ fontFamily: "var(--font-head)", fontSize: 18, fontWeight: 600 }}>Aperçu de la quittance</div>
+                <div className="small muted">receipt #{previewId}</div>
+              </div>
+            </div>
+          </div>
+          <div style={{ padding: 0, overflow: "hidden", borderRadius: "0 0 12px 12px" }}>
+            <iframe
+              src={`/api/receipts/${previewId}/pdf`}
+              style={{ display: "block", width: "100%", height: "72vh", border: "none" }}
+              title="Aperçu quittance"
+            />
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
@@ -304,8 +332,10 @@ function Paiements({ store }) {
               <th>Période</th>
               <th className="num">Loyer</th>
               <th className="num">Charges</th>
+              <th className="num">Services</th>
               <th className="num">Total</th>
               <th>Encaissé le</th>
+              <th style={{ width: 110, textAlign: "right" }}></th>
             </tr>
           </thead>
           <tbody>
@@ -313,6 +343,9 @@ function Paiements({ store }) {
               const t  = store.tenantById(p.tenant_id);
               const pr = store.propertyById(p.property_id);
               if (!t || !pr) return null;
+              const services = p.services_amount || 0;
+              const total    = p.rent_amount + p.charges_amount + services;
+              const row      = { tenant: t, property: pr, payment: p };
               return (
                 <tr key={p.id}>
                   <td className="idcol">{p.id}</td>
@@ -326,8 +359,24 @@ function Paiements({ store }) {
                   <td><span className="code">{p.period}</span></td>
                   <td className="num">{RENT.fmtEUR(p.rent_amount)}</td>
                   <td className="num">{RENT.fmtEUR(p.charges_amount)}</td>
-                  <td className="num" style={{ fontWeight: 700 }}>{RENT.fmtEUR(p.rent_amount + p.charges_amount)}</td>
+                  <td className="num">{services > 0 ? RENT.fmtEUR(services) : <span className="muted">—</span>}</td>
+                  <td className="num" style={{ fontWeight: 700 }}>{RENT.fmtEUR(total)}</td>
                   <td className="num">{RENT.fmtDateShort(p.paid_at)}</td>
+                  <td>
+                    <div className="row" style={{ gap: 4, justifyContent: "flex-end" }}>
+                      {!p.receipt && (
+                        <button className="btn sm ghost icon" title="Quittancer" onClick={() => store.openProcess(t, pr, "process")}>
+                          <Icon name="bolt" size={15} />
+                        </button>
+                      )}
+                      <button className="btn sm ghost icon" title="Modifier" onClick={() => store.openPayment(row)}>
+                        <Icon name="edit" size={15} />
+                      </button>
+                      <button className="btn sm ghost icon" title="Supprimer" onClick={() => store.removePayment(p)}>
+                        <Icon name="trash" size={15} />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               );
             })}

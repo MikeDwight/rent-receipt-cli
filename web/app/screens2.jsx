@@ -318,7 +318,6 @@ function PropertyDrawer({ property, store }) {
 }
 
 function PaymentModal({ row, store }) {
-  // Guard: need at least one tenant with a property
   const tenantsWithProp = store.tenants.filter(t => t.property_id);
   if (!tenantsWithProp.length) {
     return (
@@ -329,23 +328,29 @@ function PaymentModal({ row, store }) {
     );
   }
 
-  const presetTenant   = row && row.tenant ? row.tenant : tenantsWithProp[0];
+  const existingPayment = row && row.payment ? row.payment : null;
+  const isEdit          = !!existingPayment;
+  const presetTenant    = row && row.tenant ? row.tenant : tenantsWithProp[0];
   const [tenantId, setTenantId] = useState(presetTenant.id);
   const tenant   = store.tenantById(tenantId) || tenantsWithProp[0];
   const property = store.propertyById(tenant.property_id) || store.properties[0];
 
-  const toE = (c) => c ? (c / 100).toString().replace(".", ",") : "0";
-  const [rent,    setRent]    = useState(toE(property ? property.rent_amount    : 0));
-  const [charges, setCharges] = useState(toE(property ? property.charges_amount : 0));
-  const [paidAt,  setPaidAt]  = useState(store.period + "-" + String(new Date().getDate()).padStart(2, "0"));
+  const toE = (c) => c != null ? (c / 100).toString().replace(".", ",") : "0";
+  const [rent,     setRent]     = useState(toE(isEdit ? existingPayment.rent_amount     : (property ? property.rent_amount     : 0)));
+  const [charges,  setCharges]  = useState(toE(isEdit ? existingPayment.charges_amount  : (property ? property.charges_amount  : 0)));
+  const [services, setServices] = useState(toE(isEdit ? existingPayment.services_amount : 0));
+  const [paidAt,   setPaidAt]   = useState(
+    isEdit ? existingPayment.paid_at : (store.period + "-" + String(new Date().getDate()).padStart(2, "0"))
+  );
 
   useEffect(() => {
+    if (isEdit) return;
     const p = store.propertyById(tenant.property_id) || store.properties[0];
-    if (p) { setRent(toE(p.rent_amount)); setCharges(toE(p.charges_amount)); }
+    if (p) { setRent(toE(p.rent_amount)); setCharges(toE(p.charges_amount)); setServices("0"); }
   }, [tenantId]);
 
   const cents = (s) => Math.round(parseFloat(String(s).replace(",", ".") || "0") * 100);
-  const total = cents(rent) + cents(charges);
+  const total = cents(rent) + cents(charges) + cents(services);
 
   return (
     <Modal onClose={store.closeModal} width={520}>
@@ -355,14 +360,16 @@ function PaymentModal({ row, store }) {
             <Icon name="euro" size={18} />
           </div>
           <div>
-            <div style={{ fontFamily: "var(--font-head)", fontSize: 19, fontWeight: 600 }}>Saisir un paiement</div>
+            <div style={{ fontFamily: "var(--font-head)", fontSize: 19, fontWeight: 600 }}>
+              {isEdit ? "Modifier le paiement" : "Saisir un paiement"}
+            </div>
             <div className="small muted">payment:upsert · {RENT.fmtPeriod(store.period)}</div>
           </div>
         </div>
       </div>
       <div className="modal-body">
         <Field label="Locataire">
-          <select className="select" value={tenantId} onChange={e => setTenantId(Number(e.target.value))}>
+          <select className="select" value={tenantId} onChange={e => setTenantId(Number(e.target.value))} disabled={isEdit}>
             {tenantsWithProp.map(t => {
               const p = store.propertyById(t.property_id);
               return <option key={t.id} value={t.id}>{t.full_name}{p ? ` — ${p.label}` : ""}</option>;
@@ -372,7 +379,7 @@ function PaymentModal({ row, store }) {
         {property && (
           <div className="card card-pad" style={{ background: "var(--surface-2)", marginBottom: 18 }}>
             <div className="row" style={{ gap: 12 }}>
-              <Icon name="home" size={16} className="muted" />
+              <Icon name="building" size={16} style={{ color: "var(--ink-3)", flexShrink: 0 }} />
               <div>
                 <div style={{ fontWeight: 600, fontSize: 13.5 }}>{property.label}</div>
                 <div className="small muted">{property.address}</div>
@@ -381,9 +388,12 @@ function PaymentModal({ row, store }) {
           </div>
         )}
         <div className="field-2">
-          <Field label="Loyer">  <MoneyInput value={rent}    onChange={setRent}    /></Field>
-          <Field label="Charges"><MoneyInput value={charges} onChange={setCharges} /></Field>
+          <Field label="Loyer">  <MoneyInput value={rent}     onChange={setRent}     /></Field>
+          <Field label="Charges"><MoneyInput value={charges}  onChange={setCharges}  /></Field>
         </div>
+        <Field label="Services résidence" hint="Charges de résidence variables (optionnel).">
+          <MoneyInput value={services} onChange={setServices} />
+        </Field>
         <Field label="Encaissé le">
           <input className="input" type="date" value={paidAt} onChange={e => setPaidAt(e.target.value)} />
         </Field>
@@ -395,14 +405,16 @@ function PaymentModal({ row, store }) {
       <div className="modal-foot">
         <button className="btn ghost" onClick={store.closeModal}>Annuler</button>
         <button className="btn primary" onClick={() => store.savePayment({
-          tenant_id:    tenantId,
-          property_id:  property ? property.id : null,
-          period:       store.period,
-          rent_amount:  cents(rent),
+          ...(isEdit ? { id: existingPayment.id } : {}),
+          tenant_id:      tenantId,
+          property_id:    property ? property.id : null,
+          period:         store.period,
+          rent_amount:    cents(rent),
           charges_amount: cents(charges),
-          paid_at:      paidAt,
+          services_amount: cents(services),
+          paid_at:        paidAt,
         })}>
-          <Icon name="check" size={15} />Enregistrer le paiement
+          <Icon name="check" size={15} />{isEdit ? "Enregistrer les modifications" : "Enregistrer le paiement"}
         </button>
       </div>
     </Modal>

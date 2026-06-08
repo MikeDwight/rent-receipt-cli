@@ -96,7 +96,7 @@ function App() {
       const lot = r.property.rent_amount + r.property.charges_amount;
       expected += lot;
       maxLot = Math.max(maxLot, lot);
-      if (r.payment) collected += r.payment.rent_amount + r.payment.charges_amount;
+      if (r.payment) collected += r.payment.rent_amount + r.payment.charges_amount + (r.payment.services_amount || 0);
       const rc = r.payment && r.payment.receipt;
       if (rc && rc.sent_at)    sent++;
       if (rc && rc.archived_at) archived++;
@@ -234,7 +234,14 @@ function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       })
-        .then(() => { refreshPayments(); setModal(null); toast("Paiement enregistré"); })
+        .then(() => { refreshPayments(); setModal(null); toast(data.id ? "Paiement mis à jour" : "Paiement enregistré"); })
+        .catch(e => toast(`Erreur : ${e.message}`, { kind: "err", icon: "alert" }));
+    },
+
+    removePayment: (p) => {
+      if (!window.confirm(`Supprimer le paiement #${p.id} ?`)) return;
+      fetch(`/api/payments/${p.id}`, { method: "DELETE" })
+        .then(() => { refreshPayments(); toast("Paiement supprimé", { icon: "trash" }); })
         .catch(e => toast(`Erreur : ${e.message}`, { kind: "err", icon: "alert" }));
     },
   };

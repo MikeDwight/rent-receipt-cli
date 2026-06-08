@@ -197,6 +197,7 @@ HTML;
             $group->delete('/api/properties/{id}',       [$apiCtrl, 'deleteProperty']);
             $group->get('/api/payments',                 [$apiCtrl, 'getPayments']);
             $group->post('/api/payments',                [$apiCtrl, 'upsertPayment']);
+            $group->delete('/api/payments/{id}',         [$apiCtrl, 'deletePayment']);
             $group->get('/api/receipts',                 [$apiCtrl, 'getReceipts']);
             $group->get('/api/receipts/{id}/pdf',        [$apiCtrl, 'serveReceiptPdf']);
             $group->get('/api/dashboard',                [$apiCtrl, 'getDashboard']);

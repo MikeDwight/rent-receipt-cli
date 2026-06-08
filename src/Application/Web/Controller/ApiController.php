@@ -252,6 +252,14 @@ final class ApiController
         return $this->json($response, ['id' => $id, 'action' => 'created'], 201);
     }
 
+    // ---- DELETE /api/payments/{id} -----------------------------------------
+
+    public function deletePayment(Request $request, Response $response, array $args): Response
+    {
+        $this->payments->delete((int) $args['id']);
+        return $this->json($response, ['deleted' => true]);
+    }
+
     // ---- GET /api/receipts?period=YYYY-MM -----------------------------------
 
     public function getReceipts(Request $request, Response $response): Response
