@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace RentReceiptCli\Application\Web;
 
+use RentReceiptCli\Application\Web\Controller\ApiController;
 use RentReceiptCli\Application\Web\Controller\AuthController;
 use RentReceiptCli\Application\Web\Controller\DashboardController;
 use RentReceiptCli\Application\Web\Controller\OwnerController;
@@ -61,6 +62,11 @@ final class WebKernel
         $processUseCase = self::buildProcessUseCase($config, $pdo, $ownerRepo, $logger, $settingsRepo);
         $htmlBuilder    = self::buildHtmlBuilder($config);
 
+        $apiCtrl = new ApiController(
+            $ownerRepo, $tenantRepo, $propertyRepo, $paymentRepo, $receiptRepo,
+            $processUseCase, $config,
+        );
+
         $twig = Twig::create(
             __DIR__ . '/../../../templates/web',
             ['cache' => false],
@@ -84,6 +90,13 @@ final class WebKernel
         $app->addBodyParsingMiddleware();
         $app->addRoutingMiddleware();
         $app->addErrorMiddleware(false, true, true);
+
+        // SPA entry point (serves web/app/index.html)
+        $app->get('/app', function ($req, $res) {
+            $html = file_get_contents(__DIR__ . '/../../../web/app/index.html');
+            $res->getBody()->write($html);
+            return $res->withHeader('Content-Type', 'text/html; charset=UTF-8');
+        });
 
         // Public routes
         $app->get('/login', [$authCtrl, 'showLogin']);
@@ -142,6 +155,22 @@ final class WebKernel
             // Settings
             $group->get('/settings', [$settingsCtrl, 'index']);
             $group->post('/settings', [$settingsCtrl, 'update']);
+
+            // ---- JSON API (consumed by the React SPA at /app) ----
+            $group->get('/api/owner',                    [$apiCtrl, 'getOwner']);
+            $group->get('/api/tenants',                  [$apiCtrl, 'getTenants']);
+            $group->post('/api/tenants',                 [$apiCtrl, 'upsertTenant']);
+            $group->delete('/api/tenants/{id}',          [$apiCtrl, 'deleteTenant']);
+            $group->get('/api/properties',               [$apiCtrl, 'getProperties']);
+            $group->post('/api/properties',              [$apiCtrl, 'upsertProperty']);
+            $group->delete('/api/properties/{id}',       [$apiCtrl, 'deleteProperty']);
+            $group->get('/api/payments',                 [$apiCtrl, 'getPayments']);
+            $group->post('/api/payments',                [$apiCtrl, 'upsertPayment']);
+            $group->get('/api/receipts',                 [$apiCtrl, 'getReceipts']);
+            $group->get('/api/receipts/{id}/pdf',        [$apiCtrl, 'serveReceiptPdf']);
+            $group->get('/api/dashboard',                [$apiCtrl, 'getDashboard']);
+            $group->post('/api/process',                 [$apiCtrl, 'process']);
+            $group->get('/api/env-check',                [$apiCtrl, 'envCheck']);
         })->add(new AuthMiddleware());
 
         return $app;
