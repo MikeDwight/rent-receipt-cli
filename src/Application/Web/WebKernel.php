@@ -91,9 +91,36 @@ final class WebKernel
         $app->addRoutingMiddleware();
         $app->addErrorMiddleware(false, true, true);
 
-        // SPA entry point (serves web/app/index.html)
+        // SPA entry point — JSX inliné pour éviter les problèmes de serveur avec .jsx
         $app->get('/app', function ($req, $res) {
-            $html = file_get_contents(__DIR__ . '/../../../web/app/index.html');
+            $dir = __DIR__ . '/../../../web/app';
+            $apiJs = (string) file_get_contents("{$dir}/api.js");
+            $jsx   = '';
+            foreach (['components.jsx','process.jsx','screens.jsx','screens2.jsx','app.jsx'] as $f) {
+                $jsx .= "\n/* ==== {$f} ==== */\n" . file_get_contents("{$dir}/{$f}");
+            }
+            $html = <<<HTML
+<!DOCTYPE html>
+<html lang="fr" data-theme="releve">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Régie locative</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/app/styles.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script>{$apiJs}</script>
+  <script type="text/babel">{$jsx}</script>
+</body>
+</html>
+HTML;
             $res->getBody()->write($html);
             return $res->withHeader('Content-Type', 'text/html; charset=UTF-8');
         });
