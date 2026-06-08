@@ -471,6 +471,14 @@ final class ApiController
         return $this->json($response, $checks);
     }
 
+    // ---- DELETE /api/receipts/{id} ----------------------------------------
+
+    public function deleteReceipt(Request $request, Response $response, array $args): Response
+    {
+        $this->receipts->delete((int) $args['id']);
+        return $this->json($response, ['deleted' => true]);
+    }
+
     // ---- GET /api/receipts/{id}/pdf ----------------------------------------
 
     public function serveReceiptPdf(Request $request, Response $response, array $args): Response

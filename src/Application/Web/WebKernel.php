@@ -199,6 +199,7 @@ HTML;
             $group->post('/api/payments',                [$apiCtrl, 'upsertPayment']);
             $group->delete('/api/payments/{id}',         [$apiCtrl, 'deletePayment']);
             $group->get('/api/receipts',                 [$apiCtrl, 'getReceipts']);
+            $group->delete('/api/receipts/{id}',         [$apiCtrl, 'deleteReceipt']);
             $group->get('/api/receipts/{id}/pdf',        [$apiCtrl, 'serveReceiptPdf']);
             $group->get('/api/dashboard',                [$apiCtrl, 'getDashboard']);
             $group->post('/api/process',                 [$apiCtrl, 'process']);

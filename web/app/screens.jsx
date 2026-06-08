@@ -288,7 +288,12 @@ function Quittances({ store }) {
                       : <span className="muted small">—</span>}
                   </td>
                   <td>
-                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 6, alignItems: "center" }}>
+                      {rid && (
+                        <button className="btn sm ghost icon" title="Supprimer la quittance" onClick={() => store.removeReceipt(rid)}>
+                          <Icon name="trash" size={15} />
+                        </button>
+                      )}
                       <RowActions row={r} store={store} onPreview={setPreviewId} />
                     </div>
                   </td>

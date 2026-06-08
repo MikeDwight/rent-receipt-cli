@@ -244,6 +244,13 @@ function App() {
         .then(() => { refreshPayments(); toast("Paiement supprimé", { icon: "trash" }); })
         .catch(e => toast(`Erreur : ${e.message}`, { kind: "err", icon: "alert" }));
     },
+
+    removeReceipt: (rid) => {
+      if (!window.confirm(`Supprimer la quittance #${rid} ? Le paiement sera conservé.`)) return;
+      fetch(`/api/receipts/${rid}`, { method: "DELETE" })
+        .then(() => { refreshPayments(); toast("Quittance supprimée", { icon: "trash" }); })
+        .catch(e => toast(`Erreur : ${e.message}`, { kind: "err", icon: "alert" }));
+    },
   };
 
   // ---- Loading screen -----------------------------------------------------
