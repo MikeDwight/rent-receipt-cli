@@ -406,7 +406,7 @@ input, select, textarea { font-family: inherit; }
 }
 .textarea { height: auto; padding: 10px 12px; resize: vertical; min-height: 70px; line-height: 1.5; }
 .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--terra); box-shadow: 0 0 0 3px var(--terra-soft); }
-.input.money { font-family: var(--font-num); text-align: right; font-variant-numeric: tabular-nums; }
+.input.money { font-family: var(--font-num); text-align: right; font-variant-numeric: tabular-nums; padding-right: 28px; }
 .input-affix { position: relative; }
 .input-affix .affix { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-3); font-size: 13px; pointer-events: none; }
 .field-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
