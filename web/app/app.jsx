@@ -213,7 +213,7 @@ function App() {
     },
 
     saveProperty: (property, data) => {
-      const body = { label: data.label, address: data.address, rent_amount: data.rent_amount, charges_amount: data.charges_amount };
+      const body = { label: data.label, address: data.address, rent_amount: data.rent_amount, charges_amount: data.charges_amount, services_amount: data.services_amount || 0 };
       if (property) body.id = property.id;
       fetch("/api/properties", {
         method: "POST",
