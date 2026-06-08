@@ -96,7 +96,7 @@ function App() {
       const lot = r.property.rent_amount + r.property.charges_amount;
       expected += lot;
       maxLot = Math.max(maxLot, lot);
-      if (r.payment) collected += r.payment.rent_amount + r.payment.charges_amount + (r.payment.services_amount || 0);
+      if (r.payment) collected += r.payment.rent_amount + r.payment.charges_amount;
       const rc = r.payment && r.payment.receipt;
       if (rc && rc.sent_at)    sent++;
       if (rc && rc.archived_at) archived++;
