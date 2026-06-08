@@ -91,14 +91,18 @@ final class WebKernel
         $app->addRoutingMiddleware();
         $app->addErrorMiddleware(false, true, true);
 
-        // SPA entry point — JSX inliné pour éviter les problèmes de serveur avec .jsx
+        // SPA entry point — un <script type="text/babel"> par fichier pour éviter les
+        // conflits de re-déclaration const entre fichiers (SyntaxError si combinés).
         $app->get('/app', function ($req, $res) {
-            $dir = __DIR__ . '/../../../web/app';
+            $dir   = __DIR__ . '/../../../web/app';
             $apiJs = (string) file_get_contents("{$dir}/api.js");
-            $jsx   = '';
-            foreach (['components.jsx','process.jsx','screens.jsx','screens2.jsx','app.jsx'] as $f) {
-                $jsx .= "\n/* ==== {$f} ==== */\n" . file_get_contents("{$dir}/{$f}");
+
+            $babelScripts = '';
+            foreach (['components.jsx', 'process.jsx', 'screens.jsx', 'screens2.jsx', 'app.jsx'] as $f) {
+                $content = (string) file_get_contents("{$dir}/{$f}");
+                $babelScripts .= "\n<script type=\"text/babel\">\n{$content}\n</script>";
             }
+
             $html = <<<HTML
 <!DOCTYPE html>
 <html lang="fr" data-theme="releve">
@@ -117,7 +121,7 @@ final class WebKernel
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script>{$apiJs}</script>
-  <script type="text/babel">{$jsx}</script>
+  {$babelScripts}
 </body>
 </html>
 HTML;
