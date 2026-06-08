@@ -16,7 +16,6 @@ const TITLES = {
 function App() {
   const persisted = (() => { try { return JSON.parse(localStorage.getItem("rent_ui") || "{}"); } catch (e) { return {}; } })();
 
-  const [theme,  setTheme]  = useState(persisted.theme || "releve");
   const [route,  setRoute]  = useState(persisted.route || "dashboard");
   const [period, setPeriod] = useState(RENT.CURRENT_PERIOD);
 
@@ -31,10 +30,9 @@ function App() {
   const [processCtx, setProcessCtx] = useState(null);
   const [toasts,     setToasts]     = useState([]);
 
-  useEffect(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
   useEffect(() => {
-    try { localStorage.setItem("rent_ui", JSON.stringify({ theme, route })); } catch (e) {}
-  }, [theme, route]);
+    try { localStorage.setItem("rent_ui", JSON.stringify({ route })); } catch (e) {}
+  }, [route]);
 
   // ---- Initial data load --------------------------------------------------
   useEffect(() => {
@@ -148,7 +146,7 @@ function App() {
 
   // ---- Store (mutations call API, then refresh) ---------------------------
   const store = {
-    period, setPeriod, theme, setTheme, route, setRoute,
+    period, setPeriod, route, setRoute,
     tenants, properties, owner, loading,
     tenantById, propertyById, paymentForTenant, paymentsForPeriod, rowsForPeriod, metrics, recentActivity,
     toast,
@@ -277,7 +275,7 @@ function App() {
     <div className="app">
       <Sidebar route={route} setRoute={setRoute} todoCount={metrics(period).todoCount} owner={owner} />
       <div className="main">
-        <Topbar title={TITLES[route]} crumb={crumb} theme={theme} setTheme={setTheme} />
+        <Topbar title={TITLES[route]} crumb={crumb} />
         <div className="content">
           <Screen store={store} />
         </div>

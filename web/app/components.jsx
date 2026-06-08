@@ -151,23 +151,8 @@ function MonthStepper({ period, setPeriod }) {
 }
 
 /* ---- Theme switcher (segmented) --------------------------------------- */
-const THEMES = [
-  { id: "releve", label: "Relevé" },
-  { id: "ledger", label: "Ledger" },
-  { id: "atelier", label: "Atelier" },
-];
-function ThemeSwitch({ theme, setTheme }) {
-  return (
-    <div className="seg" role="tablist" aria-label="Direction visuelle">
-      {THEMES.map(t => (
-        <button key={t.id} className={theme === t.id ? "on" : ""} onClick={() => setTheme(t.id)}>{t.label}</button>
-      ))}
-    </div>
-  );
-}
-
 /* ---- Topbar ------------------------------------------------------------ */
-function Topbar({ title, crumb, theme, setTheme, right }) {
+function Topbar({ title, crumb, right }) {
   return (
     <header className="topbar">
       <div>
@@ -176,7 +161,6 @@ function Topbar({ title, crumb, theme, setTheme, right }) {
       </div>
       <div className="topbar-spacer" />
       {right}
-      <ThemeSwitch theme={theme} setTheme={setTheme} />
     </header>
   );
 }
@@ -280,6 +264,6 @@ function ImgSlot({ label, h = 90 }) {
 
 /* expose */
 Object.assign(window, {
-  Icon, Avatar, Pill, receiptStatus, Sidebar, MonthStepper, ThemeSwitch, THEMES,
+  Icon, Avatar, Pill, receiptStatus, Sidebar, MonthStepper,
   Topbar, Kpi, Drawer, Modal, Scrim, Field, MoneyInput, Toasts, ImgSlot, NAV,
 });
