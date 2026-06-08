@@ -76,6 +76,7 @@ SELECT
     r.id,
     r.rent_payment_id,
     r.pdf_path,
+    r.created_at,
     r.sent_at,
     r.send_error,
     r.archived_at,
