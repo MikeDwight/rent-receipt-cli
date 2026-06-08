@@ -44,17 +44,25 @@ function buildPhases({ tenant, property, period, mode }) {
 function ProcessFlow({ ctx, onClose, onComplete, pushToast }) {
   const { tenant, property, period, mode } = ctx;
   const allPhases = useMemo(() => buildPhases({ tenant, property, period, mode: ctx }), []);
-  const phases = useMemo(() => {
-    if (mode === "rearchive") return allPhases.filter(p => p.key === "archive");
-    if (mode === "resend")    return allPhases.filter(p => p.key === "email" || p.key === "archive");
-    return allPhases;
-  }, [mode]);
 
-  const [stage, setStage]       = useState("confirm");
-  const [statuses, setStatuses] = useState(() => phases.map(() => "pending"));
-  const [dryRun, setDryRun]     = useState(false);
+  const [dryRun,       setDryRun]       = useState(false);
+  const [generateOnly, setGenerateOnly] = useState(false);
+
+  const phases = useMemo(() => {
+    if (mode === "rearchive")   return allPhases.filter(p => p.key === "archive");
+    if (mode === "resend" || mode === "send") return allPhases.filter(p => p.key === "email" || p.key === "archive");
+    if (generateOnly)           return allPhases.filter(p => p.key === "payment" || p.key === "receipt");
+    return allPhases;
+  }, [mode, generateOnly]);
+
+  const [stage, setStage]         = useState("confirm");
+  const [statuses, setStatuses]   = useState(() => phases.map(() => "pending"));
   const [apiResult, setApiResult] = useState(null);
   const timers = useRef([]);
+
+  useEffect(() => {
+    setStatuses(phases.map(() => "pending"));
+  }, [phases.length]);
 
   const rent = property.rent_amount, charges = property.charges_amount, total = rent + charges;
 
@@ -62,13 +70,14 @@ function ProcessFlow({ ctx, onClose, onComplete, pushToast }) {
     setStage("running");
 
     const body = {
-      tenant_id:   tenant.id,
-      property_id: property.id,
+      tenant_id:     tenant.id,
+      property_id:   property.id,
       period,
-      paid_at:     new Date().toISOString().slice(0, 10),
-      dry_run:     dryRun,
-      resend:      mode === "resend",
-      rearchive:   mode === "rearchive",
+      paid_at:       new Date().toISOString().slice(0, 10),
+      dry_run:       dryRun,
+      resend:        mode === "resend",
+      rearchive:     mode === "rearchive",
+      generate_only: generateOnly,
     };
 
     const apiPromise = fetch("/api/process", {
@@ -109,9 +118,10 @@ function ProcessFlow({ ctx, onClose, onComplete, pushToast }) {
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
   const titleByMode = {
-    process:   "Encaisser & quittancer",
+    process:   generateOnly ? "Générer la quittance" : "Encaisser & quittancer",
     rearchive: "Reprendre l'archivage",
     resend:    "Renvoyer la quittance",
+    send:      "Envoyer la quittance",
   };
 
   const hasError = apiResult && apiResult.result && !apiResult.result.ok;
@@ -152,12 +162,20 @@ function ProcessFlow({ ctx, onClose, onComplete, pushToast }) {
               </div>
             </div>
             <p className="small muted" style={{ marginTop: 0 }}>
-              {mode === "process"   && "Une seule commande enchaîne tout le flux : enregistrement du paiement, génération du PDF, envoi par email au locataire, puis archivage Nextcloud. L'opération est idempotente — les étapes déjà faites sont ignorées."}
+              {mode === "process"   && !generateOnly && "Enchaîne tout le flux en une commande : paiement, PDF, email au locataire, archivage Nextcloud. Idempotent — les étapes déjà faites sont ignorées."}
+              {mode === "process"   && generateOnly  && "Génère le PDF uniquement. Aucun email ne sera envoyé. Vous pourrez vérifier la quittance puis l'envoyer manuellement depuis l'écran Quittances."}
               {mode === "rearchive" && "Le PDF a déjà été envoyé au locataire. Cette opération relance uniquement le dépôt sur Nextcloud, sans renvoyer d'email."}
               {mode === "resend"    && "Renvoie l'email au locataire puis revérifie l'archivage. À utiliser avec parcimonie."}
+              {mode === "send"      && "Envoie la quittance par email au locataire et l'archive sur Nextcloud."}
             </p>
-            <label className="row" style={{ gap: 9, cursor: "pointer", marginTop: 14, fontSize: 13 }}>
-              <input type="checkbox" checked={dryRun} onChange={e => setDryRun(e.target.checked)} />
+            {mode === "process" && (
+              <label className="row" style={{ gap: 9, cursor: "pointer", marginTop: 10, fontSize: 13 }}>
+                <input type="checkbox" checked={generateOnly} onChange={e => { setGenerateOnly(e.target.checked); if (e.target.checked) setDryRun(false); }} />
+                <span><b>Générer seulement</b> · crée le PDF, sans envoyer ni archiver</span>
+              </label>
+            )}
+            <label className="row" style={{ gap: 9, cursor: "pointer", marginTop: 8, fontSize: 13 }}>
+              <input type="checkbox" checked={dryRun} onChange={e => { setDryRun(e.target.checked); if (e.target.checked) setGenerateOnly(false); }} />
               <span><b>Simulation (--dry-run)</b> · aucune écriture, aucun email, aucun upload</span>
             </label>
           </div>
@@ -208,14 +226,17 @@ function ProcessFlow({ ctx, onClose, onComplete, pushToast }) {
                   {hasError
                     ? "Erreur lors du traitement"
                     : dryRun ? "Simulation terminée"
+                    : mode === "process" && generateOnly ? "PDF généré"
                     : mode === "process" ? "Quittance émise avec succès"
                     : mode === "rearchive" ? "Archivage repris"
+                    : mode === "send" ? "Quittance envoyée"
                     : "Quittance renvoyée"}
                 </div>
                 <div className="small" style={{ color: "var(--ink-2)" }}>
                   {hasError
                     ? (apiResult?.result?.error_messages?.[0] || "Une erreur est survenue.")
                     : dryRun ? "Aucune modification n'a été appliquée."
+                    : generateOnly ? "PDF généré — vérifiez-le dans Quittances avant d'envoyer."
                     : "[RESULT] ok · warnings=0 · errors=0"}
                 </div>
               </div>

@@ -349,9 +349,10 @@ final class ApiController
         $propertyId = (int) ($body['property_id'] ?? 0);
         $periodStr  = (string) ($body['period'] ?? '');
         $paidAtStr  = (string) ($body['paid_at'] ?? '');
-        $dryRun     = (bool) ($body['dry_run'] ?? false);
-        $resend     = (bool) ($body['resend'] ?? false);
-        $rearchive  = (bool) ($body['rearchive'] ?? false);
+        $dryRun       = (bool) ($body['dry_run']       ?? false);
+        $resend       = (bool) ($body['resend']       ?? false);
+        $rearchive    = (bool) ($body['rearchive']    ?? false);
+        $generateOnly = (bool) ($body['generate_only'] ?? false);
 
         if (!$tenantId || !$propertyId) {
             return $this->error($response, 'tenant_id et property_id sont requis');
@@ -367,11 +368,12 @@ final class ApiController
 
         try {
             $result = $this->processUseCase->execute($tenantId, $propertyId, [
-                'period'    => $period,
-                'paid_at'   => $paidAt,
-                'dry_run'   => $dryRun,
-                'resend'    => $resend,
-                'rearchive' => $rearchive,
+                'period'        => $period,
+                'paid_at'       => $paidAt,
+                'dry_run'       => $dryRun,
+                'resend'        => $resend,
+                'rearchive'     => $rearchive,
+                'generate_only' => $generateOnly,
             ]);
 
             return $this->json($response, [

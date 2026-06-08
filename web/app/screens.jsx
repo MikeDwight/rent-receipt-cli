@@ -15,6 +15,27 @@ function RowActions({ row, store, onPreview }) {
   if (st.kind === "warn") {
     return <button className="btn sm" onClick={() => store.openProcess(tenant, property, "rearchive")}><Icon name="cloud" size={15} />Ré-archiver</button>;
   }
+  if (st.kind === "info") {
+    // PDF généré mais pas encore envoyé
+    const receiptId = payment.receipt.id;
+    return (
+      <div className="row" style={{ gap: 6, justifyContent: "flex-end" }}>
+        {receiptId && onPreview && (
+          <button className="btn sm ghost icon" title="Aperçu PDF" onClick={() => onPreview(receiptId)}>
+            <Icon name="eye" size={15} />
+          </button>
+        )}
+        {receiptId && (
+          <a className="btn sm ghost icon" href={`/api/receipts/${receiptId}/pdf`} download title="Télécharger" style={{ textDecoration: "none" }}>
+            <Icon name="download" size={15} />
+          </a>
+        )}
+        <button className="btn sm primary" onClick={() => store.openProcess(tenant, property, "send")}>
+          <Icon name="mail" size={15} />Envoyer
+        </button>
+      </div>
+    );
+  }
   const receiptId = payment.receipt.id;
   return (
     <div className="row" style={{ gap: 6, justifyContent: "flex-end" }}>
