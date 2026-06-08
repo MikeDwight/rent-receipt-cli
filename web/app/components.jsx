@@ -76,8 +76,7 @@ function receiptStatus(payment) {
   if (r.send_error) return { kind: "err", label: "Échec d'envoi", short: "erreur" };
   if (r.archived_at && r.sent_at) return { kind: "ok", label: "Envoyée & archivée", short: "complète" };
   if (r.sent_at) return { kind: "info", label: "Envoyée", short: "envoyée" };
-  if (r.generated_at) return { kind: "info", label: "Quittance générée", short: "générée" };
-  return { kind: "muted", label: "—", short: "—" };
+  return { kind: "info", label: "Quittance générée", short: "générée" };
 }
 
 function Pill({ kind = "muted", children, dot = true }) {
