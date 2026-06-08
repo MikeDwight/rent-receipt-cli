@@ -91,19 +91,28 @@ final class WebKernel
         $app->addRoutingMiddleware();
         $app->addErrorMiddleware(false, true, true);
 
-        // SPA entry point — un <script type="text/babel"> par fichier pour éviter les
-        // conflits de re-déclaration const entre fichiers (SyntaxError si combinés).
-        $app->get('/app', function ($req, $res) {
-            $dir   = __DIR__ . '/../../../web/app';
-            $apiJs = (string) file_get_contents("{$dir}/api.js");
+        // Public routes
+        $app->get('/login', [$authCtrl, 'showLogin']);
+        $app->post('/login', [$authCtrl, 'handleLogin']);
+        $app->post('/logout', [$authCtrl, 'handleLogout']);
 
-            $babelScripts = '';
-            foreach (['components.jsx', 'process.jsx', 'screens.jsx', 'screens2.jsx', 'app.jsx'] as $f) {
-                $content = (string) file_get_contents("{$dir}/{$f}");
-                $babelScripts .= "\n<script type=\"text/babel\">\n{$content}\n</script>";
-            }
+        // Protected routes
+        $app->group('', function (RouteCollectorProxy $group) use (
+            $dashCtrl, $ownerCtrl, $tenantCtrl, $propertyCtrl, $paymentCtrl, $receiptCtrl, $settingsCtrl,
+            $apiCtrl,
+        ) {
+            // SPA — un <script type="text/babel"> par fichier pour éviter les conflits de re-déclaration const
+            $group->get('/app', function ($req, $res) {
+                $dir   = __DIR__ . '/../../../web/app';
+                $apiJs = (string) file_get_contents("{$dir}/api.js");
 
-            $html = <<<HTML
+                $babelScripts = '';
+                foreach (['components.jsx', 'process.jsx', 'screens.jsx', 'screens2.jsx', 'app.jsx'] as $f) {
+                    $content = (string) file_get_contents("{$dir}/{$f}");
+                    $babelScripts .= "\n<script type=\"text/babel\">\n{$content}\n</script>";
+                }
+
+                $html = <<<HTML
 <!DOCTYPE html>
 <html lang="fr" data-theme="releve">
 <head>
@@ -125,19 +134,10 @@ final class WebKernel
 </body>
 </html>
 HTML;
-            $res->getBody()->write($html);
-            return $res->withHeader('Content-Type', 'text/html; charset=UTF-8');
-        });
+                $res->getBody()->write($html);
+                return $res->withHeader('Content-Type', 'text/html; charset=UTF-8');
+            });
 
-        // Public routes
-        $app->get('/login', [$authCtrl, 'showLogin']);
-        $app->post('/login', [$authCtrl, 'handleLogin']);
-        $app->post('/logout', [$authCtrl, 'handleLogout']);
-
-        // Protected routes
-        $app->group('', function (RouteCollectorProxy $group) use (
-            $dashCtrl, $ownerCtrl, $tenantCtrl, $propertyCtrl, $paymentCtrl, $receiptCtrl, $settingsCtrl
-        ) {
             $group->get('/', [$dashCtrl, 'index']);
 
             // Owners
