@@ -107,7 +107,7 @@ final class WebKernel
                 $apiJs = (string) file_get_contents("{$dir}/api.js");
 
                 $babelScripts = '';
-                foreach (['components.jsx', 'process.jsx', 'screens.jsx', 'screens2.jsx', 'app.jsx'] as $f) {
+                foreach (['components.jsx', 'process.jsx', 'screens.jsx', 'screens2.jsx', 'app.jsx', 'mobile-screens.jsx', 'mobile.jsx'] as $f) {
                     $content = (string) file_get_contents("{$dir}/{$f}");
                     $babelScripts .= "\n<script type=\"text/babel\">\n{$content}\n</script>";
                 }
@@ -123,6 +123,7 @@ final class WebKernel
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/app/styles.css">
+  <link rel="stylesheet" href="/app/mobile.css">
 </head>
 <body>
   <div id="root"></div>

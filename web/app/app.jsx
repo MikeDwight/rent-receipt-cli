@@ -299,4 +299,4 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+// Root rendering handled by mobile.jsx (responsive Root component)
