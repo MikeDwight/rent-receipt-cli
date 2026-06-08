@@ -224,6 +224,8 @@ final class ApiController
         $chargesAmount = (int) ($body['charges_amount'] ?? 0);
         $servicesAmount= (int) ($body['services_amount'] ?? 0);
         $paidAtStr     = (string) ($body['paid_at'] ?? date('Y-m-d'));
+        $periodStart   = ($body['period_start'] ?? '') !== '' ? (string) $body['period_start'] : null;
+        $periodEnd     = ($body['period_end']   ?? '') !== '' ? (string) $body['period_end']   : null;
 
         if (!$tenantId || !$propertyId || $periodStr === '') {
             return $this->error($response, 'tenant_id, property_id, period sont requis');
@@ -240,14 +242,16 @@ final class ApiController
         if ($existing !== null) {
             $this->payments->update(
                 $existing['id'], $tenantId, $propertyId, $month,
-                $rentAmount, $chargesAmount, $servicesAmount, $paidAt
+                $rentAmount, $chargesAmount, $servicesAmount, $paidAt,
+                $periodStart, $periodEnd,
             );
             return $this->json($response, ['id' => $existing['id'], 'action' => 'updated']);
         }
 
         $id = $this->payments->create(
             $tenantId, $propertyId, $month,
-            $rentAmount, $chargesAmount, $servicesAmount, $paidAt
+            $rentAmount, $chargesAmount, $servicesAmount, $paidAt,
+            $periodStart, $periodEnd,
         );
         return $this->json($response, ['id' => $id, 'action' => 'created'], 201);
     }

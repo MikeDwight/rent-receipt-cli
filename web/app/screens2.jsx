@@ -343,8 +343,52 @@ function PaymentModal({ row, store }) {
     isEdit ? existingPayment.paid_at : (store.period + "-" + String(new Date().getDate()).padStart(2, "0"))
   );
 
+  // Prorata
+  const [prorata,      setProrata]      = useState(!!(isEdit && existingPayment.period_start));
+  const [prorataStart, setProrataStart] = useState(isEdit ? (existingPayment.period_start || "") : "");
+  const [prorataEnd,   setProrataEnd]   = useState(isEdit ? (existingPayment.period_end   || "") : "");
+
+  const baseRent    = () => property ? property.rent_amount    / 100 : 0;
+  const baseCharges = () => property ? property.charges_amount / 100 : 0;
+
+  function applyProrata(start, end) {
+    if (!start || !end) return;
+    const s = new Date(start), e = new Date(end);
+    if (e < s) return;
+    const ym = start.slice(0, 7);
+    const [y, m] = ym.split("-").map(Number);
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const daysOccupied = Math.round((e - s) / 86400000) + 1;
+    const ratio = daysOccupied / daysInMonth;
+    setRent((Math.round(baseRent() * ratio * 100) / 100).toString().replace(".", ","));
+    setCharges((Math.round(baseCharges() * ratio * 100) / 100).toString().replace(".", ","));
+  }
+
+  function onProrataStart(v) { setProrataStart(v); applyProrata(v, prorataEnd); }
+  function onProrataEnd(v)   { setProrataEnd(v);   applyProrata(prorataStart, v); }
+
+  function toggleProrata(checked) {
+    setProrata(checked);
+    if (!checked) {
+      setProrataStart(""); setProrataEnd("");
+      const p = store.propertyById(tenant.property_id) || store.properties[0];
+      if (p) { setRent(toE(p.rent_amount)); setCharges(toE(p.charges_amount)); }
+    }
+  }
+
+  const prorataLabel = () => {
+    if (!prorataStart || !prorataEnd) return null;
+    const s = new Date(prorataStart), e = new Date(prorataEnd);
+    if (e < s) return null;
+    const ym = prorataStart.slice(0, 7);
+    const [y, m] = ym.split("-").map(Number);
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const daysOccupied = Math.round((e - s) / 86400000) + 1;
+    return `${daysOccupied} j / ${daysInMonth} j = ${(daysOccupied / daysInMonth * 100).toFixed(1).replace(".", ",")} %`;
+  };
+
   useEffect(() => {
-    if (isEdit) return;
+    if (isEdit || prorata) return;
     const p = store.propertyById(tenant.property_id) || store.properties[0];
     if (p) { setRent(toE(p.rent_amount)); setCharges(toE(p.charges_amount)); setServices("0"); }
   }, [tenantId]);
@@ -387,6 +431,28 @@ function PaymentModal({ row, store }) {
             </div>
           </div>
         )}
+        {/* Prorata */}
+        <label className="row" style={{ gap: 9, cursor: "pointer", fontSize: 13, marginBottom: 14 }}>
+          <input type="checkbox" checked={prorata} onChange={e => toggleProrata(e.target.checked)} />
+          <span>Entrée en cours de mois <span className="muted">(prorata)</span></span>
+        </label>
+        {prorata && (
+          <div className="card card-pad fade-enter" style={{ background: "var(--surface-2)", marginBottom: 16 }}>
+            <div className="field-2" style={{ marginBottom: prorataLabel() ? 10 : 0 }}>
+              <Field label="Du">
+                <input className="input" type="date" value={prorataStart} onChange={e => onProrataStart(e.target.value)} />
+              </Field>
+              <Field label="Au">
+                <input className="input" type="date" value={prorataEnd} onChange={e => onProrataEnd(e.target.value)} />
+              </Field>
+            </div>
+            {prorataLabel() && (
+              <div className="small mono" style={{ color: "var(--ink-2)" }}>
+                {prorataLabel()} &nbsp;·&nbsp; Loyer : <b>{rent} €</b>, Charges : <b>{charges} €</b>
+              </div>
+            )}
+          </div>
+        )}
         <div className="field-2">
           <Field label="Loyer">  <MoneyInput value={rent}     onChange={setRent}     /></Field>
           <Field label="Charges"><MoneyInput value={charges}  onChange={setCharges}  /></Field>
@@ -408,7 +474,9 @@ function PaymentModal({ row, store }) {
           ...(isEdit ? { id: existingPayment.id } : {}),
           tenant_id:      tenantId,
           property_id:    property ? property.id : null,
-          period:         store.period,
+          period:         prorata && prorataStart ? prorataStart.slice(0, 7) : store.period,
+          period_start:   prorata ? prorataStart : null,
+          period_end:     prorata ? prorataEnd   : null,
           rent_amount:    cents(rent),
           charges_amount: cents(charges),
           services_amount: cents(services),
