@@ -264,6 +264,9 @@ function Quittances({ store }) {
               const pdfName = r.payment && r.payment.receipt && r.payment.receipt.pdf_path
                 ? RENT.basename(r.payment.receipt.pdf_path)
                 : null;
+              const displayAmt = r.payment
+                ? r.payment.rent_amount + r.payment.charges_amount + (r.payment.services_amount || 0)
+                : r.property.rent_amount + r.property.charges_amount + (r.property.services_amount || 0);
               return (
                 <tr key={r.tenant.id}>
                   <td className="idcol">{rid || "—"}</td>
@@ -280,7 +283,7 @@ function Quittances({ store }) {
                     <div style={{ fontWeight: 500 }}>{r.property.label}</div>
                     <div className="sub small muted">{(r.property.address || "").split(",")[0]}</div>
                   </td>
-                  <td className="num">{RENT.fmtEUR(r.property.rent_amount + r.property.charges_amount + (r.property.services_amount || 0))}</td>
+                  <td className="num">{RENT.fmtEUR(displayAmt)}</td>
                   <td><Pill kind={st.kind}>{st.label}</Pill></td>
                   <td>
                     {pdfName
