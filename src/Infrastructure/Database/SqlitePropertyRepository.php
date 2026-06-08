@@ -15,11 +15,12 @@ final class SqlitePropertyRepository implements PropertyRepository
 
     public function listAll(): array
     {
-        $stmt = $this->pdo->query(
-            "SELECT id, owner_id, label, address, rent_amount, charges_amount, services_amount, created_at
-             FROM properties
-             ORDER BY id ASC"
-        );
+        $hasServices = $this->columnExists('properties', 'services_amount');
+        $select = $hasServices
+            ? "SELECT id, owner_id, label, address, rent_amount, charges_amount, services_amount, created_at FROM properties ORDER BY id ASC"
+            : "SELECT id, owner_id, label, address, rent_amount, charges_amount, 0 AS services_amount, created_at FROM properties ORDER BY id ASC";
+
+        $stmt = $this->pdo->query($select);
 
         if ($stmt === false) {
             return [];
@@ -39,8 +40,10 @@ final class SqlitePropertyRepository implements PropertyRepository
 
     public function findById(int $id): ?array
     {
+        $hasServices = $this->columnExists('properties', 'services_amount');
+        $servicesSql = $hasServices ? 'services_amount' : '0 AS services_amount';
         $stmt = $this->pdo->prepare(
-            "SELECT id, owner_id, label, address, rent_amount, charges_amount, services_amount, created_at
+            "SELECT id, owner_id, label, address, rent_amount, charges_amount, {$servicesSql}, created_at
              FROM properties
              WHERE id = :id
              LIMIT 1"
@@ -145,5 +148,19 @@ final class SqlitePropertyRepository implements PropertyRepository
         $stmt->execute([':id' => $ownerId]);
 
         return $stmt->fetchColumn() !== false;
+    }
+
+    private function columnExists(string $table, string $column): bool
+    {
+        $stmt = $this->pdo->query("PRAGMA table_info({$table})");
+        if ($stmt === false) {
+            return false;
+        }
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $col) {
+            if ($col['name'] === $column) {
+                return true;
+            }
+        }
+        return false;
     }
 }
