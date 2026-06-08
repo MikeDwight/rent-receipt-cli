@@ -139,7 +139,9 @@ HTML;
                 return $res->withHeader('Content-Type', 'text/html; charset=UTF-8');
             });
 
-            $group->get('/', [$dashCtrl, 'index']);
+            $group->get('/', function ($req, $res) {
+                return $res->withHeader('Location', '/app')->withStatus(302);
+            });
 
             // Owners
             $group->get('/owners', [$ownerCtrl, 'index']);
