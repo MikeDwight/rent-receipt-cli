@@ -133,7 +133,7 @@ function Dashboard({ store }) {
                   <div className="t-sub">{r.property.label} · {(r.property.address || "").split(",")[0]}</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <div className="t-amt num">{RENT.fmtEUR(r.property.rent_amount + r.property.charges_amount)}</div>
+                  <div className="t-amt num">{RENT.fmtEUR(r.property.rent_amount + r.property.charges_amount + (r.property.services_amount || 0))}</div>
                   <div style={{ marginTop: 5 }}><Pill kind={st.kind}>{st.label}</Pill></div>
                 </div>
                 <div style={{ marginLeft: 8 }}><RowActions row={r} store={store} /></div>
@@ -172,7 +172,7 @@ function Dashboard({ store }) {
             <div className="col" style={{ gap: 11, marginTop: 16 }}>
               {store.rowsForPeriod(period).map(r => {
                 const paid = !!r.payment;
-                const amt  = r.property.rent_amount + r.property.charges_amount;
+                const amt  = r.property.rent_amount + r.property.charges_amount + (r.property.services_amount || 0);
                 const pct  = m.maxLot ? (amt / m.maxLot) * 100 : 0;
                 return (
                   <div key={r.tenant.id} className="row" style={{ gap: 12 }}>
@@ -280,7 +280,7 @@ function Quittances({ store }) {
                     <div style={{ fontWeight: 500 }}>{r.property.label}</div>
                     <div className="sub small muted">{(r.property.address || "").split(",")[0]}</div>
                   </td>
-                  <td className="num">{RENT.fmtEUR(r.property.rent_amount + r.property.charges_amount)}</td>
+                  <td className="num">{RENT.fmtEUR(r.property.rent_amount + r.property.charges_amount + (r.property.services_amount || 0))}</td>
                   <td><Pill kind={st.kind}>{st.label}</Pill></td>
                   <td>
                     {pdfName
