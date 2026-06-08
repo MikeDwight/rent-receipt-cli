@@ -16,7 +16,7 @@ final class SqlitePropertyRepository implements PropertyRepository
     public function listAll(): array
     {
         $stmt = $this->pdo->query(
-            "SELECT id, owner_id, label, address, rent_amount, charges_amount, created_at
+            "SELECT id, owner_id, label, address, rent_amount, charges_amount, services_amount, created_at
              FROM properties
              ORDER BY id ASC"
         );
@@ -31,6 +31,7 @@ final class SqlitePropertyRepository implements PropertyRepository
             $r['owner_id'] = (int) $r['owner_id'];
             $r['rent_amount'] = (int) $r['rent_amount'];
             $r['charges_amount'] = (int) $r['charges_amount'];
+            $r['services_amount'] = (int) $r['services_amount'];
         }
 
         return $rows;
@@ -39,7 +40,7 @@ final class SqlitePropertyRepository implements PropertyRepository
     public function findById(int $id): ?array
     {
         $stmt = $this->pdo->prepare(
-            "SELECT id, owner_id, label, address, rent_amount, charges_amount, created_at
+            "SELECT id, owner_id, label, address, rent_amount, charges_amount, services_amount, created_at
              FROM properties
              WHERE id = :id
              LIMIT 1"
@@ -56,6 +57,7 @@ final class SqlitePropertyRepository implements PropertyRepository
         $row['owner_id'] = (int) $row['owner_id'];
         $row['rent_amount'] = (int) $row['rent_amount'];
         $row['charges_amount'] = (int) $row['charges_amount'];
+        $row['services_amount'] = (int) $row['services_amount'];
 
         return $row;
     }
@@ -65,22 +67,24 @@ final class SqlitePropertyRepository implements PropertyRepository
         string $label,
         string $address,
         int $rentAmount,
-        int $chargesAmount
+        int $chargesAmount,
+        int $servicesAmount = 0,
     ): int {
         $stmt = $this->pdo->prepare(
             "INSERT INTO properties (
-                owner_id, label, address, rent_amount, charges_amount, created_at
+                owner_id, label, address, rent_amount, charges_amount, services_amount, created_at
              ) VALUES (
-                :owner_id, :label, :address, :rent_amount, :charges_amount, datetime('now')
+                :owner_id, :label, :address, :rent_amount, :charges_amount, :services_amount, datetime('now')
              )"
         );
 
         $stmt->execute([
-            ':owner_id' => $ownerId,
-            ':label' => $label,
-            ':address' => $address,
-            ':rent_amount' => $rentAmount,
-            ':charges_amount' => $chargesAmount,
+            ':owner_id'        => $ownerId,
+            ':label'           => $label,
+            ':address'         => $address,
+            ':rent_amount'     => $rentAmount,
+            ':charges_amount'  => $chargesAmount,
+            ':services_amount' => $servicesAmount,
         ]);
 
         return (int) $this->pdo->lastInsertId();
@@ -92,25 +96,28 @@ final class SqlitePropertyRepository implements PropertyRepository
         string $label,
         string $address,
         int $rentAmount,
-        int $chargesAmount
+        int $chargesAmount,
+        int $servicesAmount = 0,
     ): void {
         $stmt = $this->pdo->prepare(
             "UPDATE properties
-             SET owner_id = :owner_id,
-                 label = :label,
-                 address = :address,
-                 rent_amount = :rent_amount,
-                 charges_amount = :charges_amount
+             SET owner_id        = :owner_id,
+                 label           = :label,
+                 address         = :address,
+                 rent_amount     = :rent_amount,
+                 charges_amount  = :charges_amount,
+                 services_amount = :services_amount
              WHERE id = :id"
         );
 
         $stmt->execute([
-            ':id' => $id,
-            ':owner_id' => $ownerId,
-            ':label' => $label,
-            ':address' => $address,
-            ':rent_amount' => $rentAmount,
-            ':charges_amount' => $chargesAmount,
+            ':id'              => $id,
+            ':owner_id'        => $ownerId,
+            ':label'           => $label,
+            ':address'         => $address,
+            ':rent_amount'     => $rentAmount,
+            ':charges_amount'  => $chargesAmount,
+            ':services_amount' => $servicesAmount,
         ]);
     }
 

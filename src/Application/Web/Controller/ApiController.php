@@ -157,8 +157,9 @@ final class ApiController
         }
 
         $properties = array_map(static function (array $p) use ($lastTenantByProperty, $tenantById): array {
-            $p['rent_amount']    = (int) $p['rent_amount'];
-            $p['charges_amount'] = (int) $p['charges_amount'];
+            $p['rent_amount']     = (int) $p['rent_amount'];
+            $p['charges_amount']  = (int) $p['charges_amount'];
+            $p['services_amount'] = (int) ($p['services_amount'] ?? 0);
             $tenantId = $lastTenantByProperty[$p['id']] ?? null;
             $p['occupant'] = $tenantId ? ($tenantById[$tenantId] ?? null) : null;
             return $p;
@@ -174,9 +175,10 @@ final class ApiController
         $body          = (array) ($request->getParsedBody() ?? []);
         $label         = trim((string) ($body['label'] ?? ''));
         $address       = trim((string) ($body['address'] ?? ''));
-        $rentAmount    = (int) ($body['rent_amount'] ?? 0);
-        $chargesAmount = (int) ($body['charges_amount'] ?? 0);
-        $id            = isset($body['id']) && $body['id'] !== '' ? (int) $body['id'] : null;
+        $rentAmount     = (int) ($body['rent_amount']     ?? 0);
+        $chargesAmount  = (int) ($body['charges_amount']  ?? 0);
+        $servicesAmount = (int) ($body['services_amount'] ?? 0);
+        $id             = isset($body['id']) && $body['id'] !== '' ? (int) $body['id'] : null;
 
         if ($label === '' || $address === '') {
             return $this->error($response, 'label et address sont requis');
@@ -186,11 +188,11 @@ final class ApiController
         $ownerId = empty($owners) ? 1 : (int) $owners[0]['id'];
 
         if ($id !== null) {
-            $this->properties->update($id, $ownerId, $label, $address, $rentAmount, $chargesAmount);
+            $this->properties->update($id, $ownerId, $label, $address, $rentAmount, $chargesAmount, $servicesAmount);
             return $this->json($response, ['id' => $id, 'action' => 'updated']);
         }
 
-        $newId = $this->properties->create($ownerId, $label, $address, $rentAmount, $chargesAmount);
+        $newId = $this->properties->create($ownerId, $label, $address, $rentAmount, $chargesAmount, $servicesAmount);
         return $this->json($response, ['id' => $newId, 'action' => 'created'], 201);
     }
 
@@ -309,7 +311,7 @@ final class ApiController
 
         $expected = 0;
         foreach ($properties as $p) {
-            $expected += (int) $p['rent_amount'] + (int) $p['charges_amount'];
+            $expected += (int) $p['rent_amount'] + (int) $p['charges_amount'] + (int) ($p['services_amount'] ?? 0);
         }
 
         $collected = 0;

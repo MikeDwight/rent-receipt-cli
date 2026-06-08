@@ -83,7 +83,7 @@ function Biens({ store }) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 18 }}>
         {store.properties.map(p => {
           const tenant = store.tenants.find(t => t.property_id === p.id);
-          const total  = p.rent_amount + p.charges_amount;
+          const total  = p.rent_amount + p.charges_amount + (p.services_amount || 0);
           return (
             <div className="card" key={p.id} style={{ overflow: "hidden" }}>
               <ImgSlot label={`photo · ${p.label}`} h={108} />
@@ -106,6 +106,12 @@ function Biens({ store }) {
                     <div className="eyebrow">Charges</div>
                     <div className="figure" style={{ fontSize: 18, marginTop: 4 }}>{RENT.fmtEUR(p.charges_amount)}</div>
                   </div>
+                  {(p.services_amount || 0) > 0 && (
+                    <div style={{ flex: 1 }}>
+                      <div className="eyebrow">Services</div>
+                      <div className="figure" style={{ fontSize: 18, marginTop: 4 }}>{RENT.fmtEUR(p.services_amount)}</div>
+                    </div>
+                  )}
                   <div style={{ flex: 1 }}>
                     <div className="eyebrow">Total TTC</div>
                     <div className="figure" style={{ fontSize: 18, marginTop: 4, color: "var(--terra-deep)" }}>{RENT.fmtEUR(total)}</div>
@@ -277,12 +283,12 @@ function PropertyDrawer({ property, store }) {
   const isNew = !property;
   const toE   = (c) => c ? (c / 100).toString().replace(".", ",") : "";
   const [f, setF] = useState(() => property
-    ? { label: property.label, address: property.address, rent: toE(property.rent_amount), charges: toE(property.charges_amount) }
-    : { label: "", address: "", rent: "", charges: "" }
+    ? { label: property.label, address: property.address, rent: toE(property.rent_amount), charges: toE(property.charges_amount), services: toE(property.services_amount) }
+    : { label: "", address: "", rent: "", charges: "", services: "" }
   );
   const set    = (k, v) => setF(s => ({ ...s, [k]: v }));
   const cents  = (s) => Math.round(parseFloat(String(s).replace(",", ".") || "0") * 100);
-  const total  = cents(f.rent) + cents(f.charges);
+  const total  = cents(f.rent) + cents(f.charges) + cents(f.services);
   const valid  = f.label.trim() && f.address.trim() && cents(f.rent) > 0;
 
   return (
@@ -294,7 +300,7 @@ function PropertyDrawer({ property, store }) {
       footer={<>
         <button className="btn ghost" onClick={store.closeDrawer}>Annuler</button>
         <button className="btn primary" disabled={!valid}
-          onClick={() => store.saveProperty(property, { label: f.label, address: f.address, rent_amount: cents(f.rent), charges_amount: cents(f.charges) })}>
+          onClick={() => store.saveProperty(property, { label: f.label, address: f.address, rent_amount: cents(f.rent), charges_amount: cents(f.charges), services_amount: cents(f.services) })}>
           <Icon name="check" size={15} />{isNew ? "Créer" : "Enregistrer"}
         </button>
       </>}
@@ -306,9 +312,10 @@ function PropertyDrawer({ property, store }) {
         <textarea className="textarea" value={f.address} onChange={e => set("address", e.target.value)} placeholder="401 rue Costa de Beauregard, 73000 Chambéry" />
       </Field>
       <div className="field-2">
-        <Field label="Loyer (hors charges)"><MoneyInput value={f.rent}    onChange={v => set("rent",    v)} /></Field>
-        <Field label="Charges">             <MoneyInput value={f.charges} onChange={v => set("charges", v)} /></Field>
+        <Field label="Loyer (hors charges)"><MoneyInput value={f.rent}     onChange={v => set("rent",     v)} /></Field>
+        <Field label="Charges">             <MoneyInput value={f.charges}  onChange={v => set("charges",  v)} /></Field>
       </div>
+      <Field label="Services résidence">    <MoneyInput value={f.services} onChange={v => set("services", v)} /></Field>
       <div className="card card-pad" style={{ background: "var(--surface-2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span className="eyebrow">Total mensuel TTC</span>
         <span className="figure" style={{ fontSize: 22, color: "var(--terra-deep)" }}>{RENT.fmtEUR(total)}</span>
@@ -338,7 +345,7 @@ function PaymentModal({ row, store }) {
   const toE = (c) => c != null ? (c / 100).toString().replace(".", ",") : "0";
   const [rent,     setRent]     = useState(toE(isEdit ? existingPayment.rent_amount     : (property ? property.rent_amount     : 0)));
   const [charges,  setCharges]  = useState(toE(isEdit ? existingPayment.charges_amount  : (property ? property.charges_amount  : 0)));
-  const [services, setServices] = useState(toE(isEdit ? existingPayment.services_amount : 0));
+  const [services, setServices] = useState(toE(isEdit ? existingPayment.services_amount : (property ? (property.services_amount || 0) : 0)));
   const [paidAt,   setPaidAt]   = useState(
     isEdit ? existingPayment.paid_at : (store.period + "-" + String(new Date().getDate()).padStart(2, "0"))
   );
@@ -390,7 +397,7 @@ function PaymentModal({ row, store }) {
   useEffect(() => {
     if (isEdit || prorata) return;
     const p = store.propertyById(tenant.property_id) || store.properties[0];
-    if (p) { setRent(toE(p.rent_amount)); setCharges(toE(p.charges_amount)); setServices("0"); }
+    if (p) { setRent(toE(p.rent_amount)); setCharges(toE(p.charges_amount)); setServices(toE(p.services_amount || 0)); }
   }, [tenantId]);
 
   const cents = (s) => Math.round(parseFloat(String(s).replace(",", ".") || "0") * 100);

@@ -93,10 +93,10 @@ function App() {
     const rows = rowsForPeriod(per);
     let expected = 0, collected = 0, sent = 0, archived = 0, todoCount = 0, maxLot = 1;
     rows.forEach(r => {
-      const lot = r.property.rent_amount + r.property.charges_amount;
+      const lot = r.property.rent_amount + r.property.charges_amount + (r.property.services_amount || 0);
       expected += lot;
       maxLot = Math.max(maxLot, lot);
-      if (r.payment) collected += r.payment.rent_amount + r.payment.charges_amount;
+      if (r.payment) collected += r.payment.rent_amount + r.payment.charges_amount + (r.payment.services_amount || 0);
       const rc = r.payment && r.payment.receipt;
       if (rc && rc.sent_at)    sent++;
       if (rc && rc.archived_at) archived++;
